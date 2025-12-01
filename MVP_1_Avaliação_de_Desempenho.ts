@@ -1,4 +1,4 @@
-import * as promptSync from 'prompt-sync';
+import promptSync from "prompt-sync";
 const prompt = promptSync();
 
 
@@ -28,11 +28,25 @@ function Avaliar(a: number, b: number): void {
 
 
 class Questionario {
+
     Perguntas_Linha: string[];
     Perguntas_Coluna: string[];
     constructor (Perguntas_Linha: string[], Perguntas_Coluna: string[]) {
         this.Perguntas_Linha = Perguntas_Linha;
         this.Perguntas_Coluna = Perguntas_Coluna;
+    }
+    Inserir_Perguntas(): void {
+        let P: string = 'a';
+        console.log("Insira suas perguntas de linha, ou '0' para parar.\n");
+        while (P != '0') {
+            let P: string = prompt('');
+            this.Perguntas_Linha.push(P);
+        }
+        console.log("Insira suas perguntas de coluna, ou '0' para parar.\n");
+        while (P != '0') {
+            let P: string = prompt('');
+            this.Perguntas_Coluna.push(P);
+        }
     }
     Questionar(): void {
         let a: number = 0;
@@ -52,3 +66,7 @@ class Questionario {
     }
 }
 
+let Questionario1 = new Questionario([], []);
+
+Questionario1.Inserir_Perguntas;
+Questionario1.Questionar;
