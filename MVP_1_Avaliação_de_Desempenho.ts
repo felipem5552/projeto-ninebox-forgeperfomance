@@ -6,13 +6,13 @@ function Avaliar(a: number, b: number): void {
     let Linha: string;
     let Coluna: string;
     if (a <= 5) {
-        Linha = "C";
+        Linha = "A";
     }
     else if (a <= 10) {
         Linha = "B";
     }
     else {
-        Linha = "A";
+        Linha = "C";
     }
     if (b <= 5) {
         Coluna = "1";
@@ -37,14 +37,16 @@ class Questionario {
     }
     Inserir_Perguntas(): void {
         let P: string = 'a';
-        console.log("Insira suas perguntas de linha, ou '0' para parar.\n");
-        while (P != '0') {
-            let P: string = prompt('');
+        let i: number = 3;
+        console.log("Insira suas perguntas de linha.\n");
+        while (i--) {
+            let P: string = prompt("");
             this.Perguntas_Linha.push(P);
         }
-        console.log("Insira suas perguntas de coluna, ou '0' para parar.\n");
-        while (P != '0') {
-            let P: string = prompt('');
+        i = 3;
+        console.log("Insira suas perguntas de coluna.\n");
+        while (i--) {
+            let P: string = prompt("");
             this.Perguntas_Coluna.push(P);
         }
     }
@@ -68,5 +70,5 @@ class Questionario {
 
 let Questionario1 = new Questionario([], []);
 
-Questionario1.Inserir_Perguntas;
-Questionario1.Questionar;
+Questionario1.Inserir_Perguntas();
+Questionario1.Questionar();
