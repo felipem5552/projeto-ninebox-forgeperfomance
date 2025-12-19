@@ -11,7 +11,6 @@ const SQL_CREATE: string[] = [`
         Nome TEXT,
         Cargo TEXT,
         Posicao TEXT,
-        Data_de_Ingresso TEXT DEFAULT CURRENT_DATE
     )`
     ]
 const database = new sqlite3.Database(DBSOURCE, (err) => {
