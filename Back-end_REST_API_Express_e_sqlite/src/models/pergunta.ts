@@ -1,4 +1,5 @@
 type Pergunta = {
+    id?: number
     enunciado: string
     eixo: string
 }
