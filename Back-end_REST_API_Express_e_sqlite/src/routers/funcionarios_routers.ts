@@ -6,10 +6,12 @@ import funcionariosRepository from '../repositories/funcionarios_repository'
 const funcionariosRouter = express.Router()
 funcionariosRouter.post('/funcionarios', (req, res) => {
     const funcionario: Funcionario = req.body
+    console.log(req.body)
     funcionariosRepository.criar(funcionario, (id) => {
         if (id) {
             res.status(201).location(`/funcionarios/${id}`).send()
         } else {
+            console.log("Erro")
             res.status(400).send()
         }
     })

@@ -2,6 +2,6 @@ type Funcionario = {
     id?: number
     nome: string
     cargo: string
-    posicao: string
+    privilegios: string
 }
 export default Funcionario

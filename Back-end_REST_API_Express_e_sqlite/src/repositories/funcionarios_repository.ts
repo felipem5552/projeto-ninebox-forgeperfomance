@@ -2,8 +2,8 @@ import Funcionario from '../models/funcionario'
 import database from './database'
 const funcionarioRepository = {
     criar: (funcionario: Funcionario, callback: (id?: number) => void) => {
-        const sql = 'INSERT INTO Funcionarios (nome, cargo, posicao) VALUES (?, ?, ?)'
-        const params = [funcionario.nome, funcionario.cargo, funcionario.posicao]
+        const sql = 'INSERT INTO Funcionarios (nome, cargo, privilegios) VALUES (?, ?, ?)'
+        const params = [funcionario.nome, funcionario.cargo, funcionario.privilegios]
         database.run(sql, params, function(_err) {
             callback(this?.lastID)
         })
@@ -19,8 +19,8 @@ const funcionarioRepository = {
     database.get(sql, params, (_err, row: Funcionario) => callback(row))
     },
     atualizar: (id: number, funcionario: Funcionario, callback: (notFound: boolean) => void) => {
-    const sql = 'UPDATE Funcionarios SET nome = ?, cargo = ?, posicao = ? WHERE id = ?'
-    const params = [funcionario.nome, funcionario.cargo, funcionario.posicao, id]
+    const sql = 'UPDATE Funcionarios SET nome = ?, cargo = ?, privilegios = ? WHERE id = ?'
+    const params = [funcionario.nome, funcionario.cargo, funcionario.privilegios, id]
     database.run(sql, params, function(_err) {
         callback(this.changes === 0)
     })
