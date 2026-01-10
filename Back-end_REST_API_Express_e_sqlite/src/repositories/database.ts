@@ -20,6 +20,21 @@ const SQL_CREATE: string[] = [
         Eixo TEXT,
         Peso INTEGER
     )`,
+    `CREATE TABLE Perguntas (
+        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+        Enunciado TEXT,
+        Eixo TEXT,
+        Peso INTEGER,
+        Avaliacao INTEGER,
+
+        FOREIGN KEY (Avaliacao)
+            REFERENCES Avaliacoes(Id)
+            ON DELETE CASCADE
+    )`,
+    `CREATE TABLE Avaliacoes (
+        Id INTEGER PRIMARY KEY AUTOINCREMENT,
+        Titulo TEXT
+    )`,
     `CREATE TABLE Autoavaliacao (
         Id INTEGER PRIMARY KEY AUTOINCREMENT,
         Enunciado TEXT,

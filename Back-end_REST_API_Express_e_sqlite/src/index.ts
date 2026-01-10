@@ -2,6 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import funcionariosRouter from './routers/funcionarios_routers'
 import ava_f_Router from './routers/ava_f_routers'
+import ava_Router from './routers/ava_routers'
 
 
 const PORT = process.env.PORT || 4000
@@ -21,6 +22,7 @@ app.use(cors({
 
 app.use('/api', ava_f_Router)
 app.use('/api', funcionariosRouter)
+app.use('/api', ava_Router)
 
 
 app.use((req, res) => {
