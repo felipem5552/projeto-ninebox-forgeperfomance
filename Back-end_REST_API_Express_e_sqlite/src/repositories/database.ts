@@ -14,6 +14,7 @@ const SQL_CREATE: string[] = [
         Eixo TEXT,
         Peso INTEGER,
         Modelo INTEGER,
+        Disponibilidade TEXT,
 
         FOREIGN KEY (Modelo)
             REFERENCES Avaliacoes(Id)
