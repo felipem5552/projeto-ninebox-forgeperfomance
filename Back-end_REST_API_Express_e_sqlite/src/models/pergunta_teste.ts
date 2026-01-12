@@ -3,6 +3,6 @@ type Pergunta_Teste = {
     enunciado: string
     eixo: string
     peso: number
-    avaliacao: number
+    modelo: number
 }
 export default Pergunta_Teste

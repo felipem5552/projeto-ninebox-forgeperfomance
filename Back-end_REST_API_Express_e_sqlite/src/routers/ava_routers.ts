@@ -1,5 +1,5 @@
 import express from 'express'
-import Avaliacao from "../models/avaliacao";
+import Avaliacao from "../models/modelo_de_avaliacao";
 import Pergunta_Teste from '../models/pergunta_teste';
 import AvaliacaoRepository from "../repositories/ava_repository";
 
@@ -30,9 +30,9 @@ ava_Router.post('/perg', (req, res) => {
 
 ava_Router.get('/avaliacoes/:id', (req, res) => {
     const id: number = +req.params.id
-    AvaliacaoRepository.verAvaliacao(id, (avaliacoes) => {
-        if (avaliacoes) {
-            res.json(avaliacoes)
+    AvaliacaoRepository.verAvaliacao(id, (perguntas) => {
+        if (perguntas) {
+            res.json(perguntas)
         }
         else {
             res.status(400).send()

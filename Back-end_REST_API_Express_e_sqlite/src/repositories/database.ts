@@ -8,26 +8,14 @@ const SQL_CREATE: string[] = [
         Privilegios TEXT,
         Data_De_Ingresso TEXT DEFAULT CURRENT_DATE
     )`,
-    `CREATE TABLE Avaliacao_Funcionarios (
-        Id INTEGER PRIMARY KEY AUTOINCREMENT,
-        Enunciado TEXT,
-        Eixo TEXT,
-        Peso INTEGER
-    )`,
-    `CREATE TABLE Avaliacao_Gestores (
-        Id INTEGER PRIMARY KEY AUTOINCREMENT,
-        Enunciado TEXT,
-        Eixo TEXT,
-        Peso INTEGER
-    )`,
     `CREATE TABLE Perguntas (
         Id INTEGER PRIMARY KEY AUTOINCREMENT,
         Enunciado TEXT,
         Eixo TEXT,
         Peso INTEGER,
-        Avaliacao INTEGER,
+        Modelo INTEGER,
 
-        FOREIGN KEY (Avaliacao)
+        FOREIGN KEY (Modelo)
             REFERENCES Avaliacoes(Id)
             ON DELETE CASCADE
     )`,
@@ -35,26 +23,22 @@ const SQL_CREATE: string[] = [
         Id INTEGER PRIMARY KEY AUTOINCREMENT,
         Titulo TEXT
     )`,
-    `CREATE TABLE Autoavaliacao (
-        Id INTEGER PRIMARY KEY AUTOINCREMENT,
-        Enunciado TEXT,
-        Eixo TEXT,
-        Peso INTEGER
-    )`,
     `CREATE TABLE Historico_de_Avaliacoes (
-        Instancia INTEGER,
-        Sujeito INTEGER,
-        Aplicante INTEGER,
-        Enunciado TEXT,
-        Eixo TEXT,
+        Avaliador INTEGER,
+        Avaliado INTEGER,
+        Modelo INTEGER,
         Nota INTEGER,
+        Ciclo TEXT,
 
-        FOREIGN KEY (Sujeito) 
+        FOREIGN KEY (Avaliado) 
             REFERENCES Funcionarios(Id)
             ON DELETE CASCADE
 
-        FOREIGN KEY (Aplicante)
+        FOREIGN KEY (Avaliador)
             REFERENCES Funcionarios(Id)
+
+        FOREIGN KEY (Modelo)
+            REFERENCES Avaliacoes(Id)
             ON DELETE CASCADE
     )`
     ]
