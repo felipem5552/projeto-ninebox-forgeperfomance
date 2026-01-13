@@ -21,16 +21,64 @@ const AvaliacaoRepository = {
         const sql = 'SELECT * FROM Perguntas WHERE Modelo = ?'
         const params = [Id_Avaliacao]
         database.all(sql, params, (_err, rows: Pergunta[]) => {callback(rows)})
-    }
-    /*Avaliar: (InstanciaAvaliacao: Instancia_de_Avaliacao, callback: () => void) => {
+    },
+    apagarPergunta: (id: number, callback: (notFound: boolean) => void) => {
+    const sql = 'DELETE FROM Perguntas WHERE id = ?'
+    const params = [id]
+    database.run(sql, params, function(_err) {
+        callback(this.changes === 0)
+    })
+    },
+    Avaliar: (InstanciaAvaliacao: Instancia_de_Avaliacao, callback: (Erro: Boolean) => void) => {
         const sql = 'SELECT * FROM Perguntas WHERE Modelo = ?'
         const params = [InstanciaAvaliacao.Modelo]
-        database.all(sql, params, (_err, rows: Pergunta[]) => {
-            let i = 0
-            for (const pergunta of rows) {
-                //Função que calcula a nota final do avaliado e coloca ela, assim como as notas das perguntas, num histórico
-            }
+        database.all(sql, params, (_err, perguntas: Pergunta[]) => {
+            database.serialize(() => {
+                database.run("BEGIN TRANSACTION")
+                let i = 0
+                let Nota_Maxima_Horizontal = 0
+                let Nota_Maxima_Vertical = 0
+                let Nota_Horizontal = 0
+                let Nota_Vertical = 0
+                let Erro = false
+                const sql = database.prepare('INSERT INTO Historico_de_Avaliacoes (avaliador, avaliado, modelo, nota, ciclo) VALUES (?, ?, ?, ?, ?)')
+                perguntas.forEach((pergunta, index) => {
+                    if (pergunta.eixo == "Horizontal") {
+                        Nota_Horizontal += InstanciaAvaliacao.Notas[index]
+                        Nota_Maxima_Horizontal++
+                    }
+                    else {
+                        Nota_Vertical += InstanciaAvaliacao.Notas[index]
+                        Nota_Maxima_Vertical++
+                    }
+                    const params = [InstanciaAvaliacao.Avaliador, InstanciaAvaliacao.Avaliado, InstanciaAvaliacao.Modelo, InstanciaAvaliacao.Notas[index], InstanciaAvaliacao.Ciclo]
+                    sql.run(params, (err) => {
+                        if (err) {
+                            Erro = true
+                            console.log("Erro na transação.")
+                        }
+                    })
+                })
+                sql.finalize()
+                if (Erro) {
+                    console.log("Rollback")
+                    database.run('ROLLBACK', () => callback(true))
+                }
+                else {
+                    database.run('COMMIT', (err) =>  {
+                        if (err) {
+                            console.log("Erro no commit")
+                            return callback(true)
+                        }
+                        else {
+                            callback(false)
+                        }
+                    })
+                }
+                Nota_Maxima_Horizontal *= 5
+                Nota_Maxima_Vertical *= 5
+            }) 
         })
-    }*/
+    }
 }
 export default AvaliacaoRepository
