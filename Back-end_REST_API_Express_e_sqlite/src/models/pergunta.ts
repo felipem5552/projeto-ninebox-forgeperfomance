@@ -21,7 +21,7 @@ type Pergunta = {
     modelo: number
 
     /** Define se a pergunta está disponível */
-    disponibilidade: string
+    disponibilidade: number
 }
 
 export default Pergunta

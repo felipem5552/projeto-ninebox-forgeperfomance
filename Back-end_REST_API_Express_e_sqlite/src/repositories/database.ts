@@ -32,7 +32,7 @@ const SQL_CREATE: string[] = [
     eixo TEXT NOT NULL,
     peso INTEGER NOT NULL,
     modelo INTEGER NOT NULL,
-    disponibilidade TEXT,
+    disponibilidade INTEGER,
     FOREIGN KEY (modelo) REFERENCES avaliacoes(id) ON DELETE CASCADE
   )
   `,

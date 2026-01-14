@@ -11,25 +11,32 @@ const AvaliacaoRepository = {
         })
     },
     alterarAvaliacao: (id: number, avaliacao: Modelo_de_Avaliacao, callback: (notFound: boolean) => void) => {
-    const sql = 'UPDATE Funcionarios SET titulo = ? WHERE id = ?'
+    const sql = 'UPDATE avaliacoes SET titulo = ? WHERE id = ?'
     const params = [avaliacao.titulo, id]
     database.run(sql, params, function(_err) {
         callback(this.changes === 0)
     })
-    },
-    inserirPerguntas: (modelo: number, pergunta: Pergunta, callback: (id?: number) => void) => {
-        const sql = 'INSERT INTO Perguntas (enunciado, eixo, peso, modelo, disponibilidade) VALUES (?, ?, ?, ?, ?)'
-        const params = [pergunta.enunciado, pergunta.eixo, pergunta.peso, modelo, "Disponível"]
-        database.run(sql, params, function(_err) {
-            callback(this?.lastID)
-        })
     },
     verAvaliacao: (Id_Avaliacao: number, callback: (perguntas: Pergunta[]) => void) => {
         const sql = 'SELECT * FROM Perguntas WHERE Modelo = ?'
         const params = [Id_Avaliacao]
         database.all(sql, params, (_err, rows: Pergunta[]) => {callback(rows)})
     },
-    apagarPergunta: (id: number, callback: (notFound: boolean) => void) => {
+    inserirPerguntas: (modelo: number, pergunta: Pergunta, callback: (id?: number) => void) => {
+        const sql = 'INSERT INTO Perguntas (enunciado, eixo, peso, modelo, disponibilidade) VALUES (?, ?, ?, ?, ?)'
+        const params = [pergunta.enunciado, pergunta.eixo, pergunta.peso, modelo, 1]
+        database.run(sql, params, function(_err) {
+            callback(this?.lastID)
+        })
+    },
+    alterarPergunta: (id: number, pergunta: Pergunta, callback: (notFound: boolean) => void) => {
+    const sql = 'UPDATE perguntas SET enunciado = ?, eixo = ?, peso = ?, modelo = ?, disponibilidade = ? WHERE id = ?'
+    const params =  [pergunta.enunciado, pergunta.eixo, pergunta.peso, pergunta.modelo, 1, id]
+    database.run(sql, params, function(_err) {
+        callback(this.changes === 0)
+    })
+    },
+    apagarPergunta_Real: (id: number, callback: (notFound: boolean) => void) => {
     const sql = 'DELETE FROM Perguntas WHERE id = ?'
     const params = [id]
     database.run(sql, params, function(_err) {
