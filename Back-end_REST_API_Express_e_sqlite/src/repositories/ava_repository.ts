@@ -29,56 +29,135 @@ const AvaliacaoRepository = {
         callback(this.changes === 0)
     })
     },
-    Avaliar: (InstanciaAvaliacao: Instancia_de_Avaliacao, callback: (Erro: Boolean) => void) => {
-        const sql = 'SELECT * FROM Perguntas WHERE Modelo = ?'
-        const params = [InstanciaAvaliacao.Modelo]
-        database.all(sql, params, (_err, perguntas: Pergunta[]) => {
-            database.serialize(() => {
-                database.run("BEGIN TRANSACTION")
-                let i = 0
-                let Nota_Maxima_Horizontal = 0
-                let Nota_Maxima_Vertical = 0
-                let Nota_Horizontal = 0
-                let Nota_Vertical = 0
-                let Erro = false
-                const sql = database.prepare('INSERT INTO Historico_de_Avaliacoes (avaliador, avaliado, modelo, nota, ciclo) VALUES (?, ?, ?, ?, ?)')
-                perguntas.forEach((pergunta, index) => {
-                    if (pergunta.eixo == "Horizontal") {
-                        Nota_Horizontal += InstanciaAvaliacao.Notas[index]
-                        Nota_Maxima_Horizontal++
-                    }
-                    else {
-                        Nota_Vertical += InstanciaAvaliacao.Notas[index]
-                        Nota_Maxima_Vertical++
-                    }
-                    const params = [InstanciaAvaliacao.Avaliador, InstanciaAvaliacao.Avaliado, InstanciaAvaliacao.Modelo, InstanciaAvaliacao.Notas[index], InstanciaAvaliacao.Ciclo]
-                    sql.run(params, (err) => {
-                        if (err) {
-                            Erro = true
-                            console.log("Erro na transação.")
-                        }
-                    })
-                })
-                sql.finalize()
-                if (Erro) {
-                    console.log("Rollback")
+    Avaliar(
+    instancia: Instancia_de_Avaliacao,
+    callback: (erro: boolean) => void
+    ) {
+    const sqlPerguntas = 'SELECT * FROM Perguntas WHERE Modelo = ?'
+
+    database.all(
+        sqlPerguntas,
+        [instancia.Modelo],
+        (err: Error | null, perguntas: Pergunta[]) => {
+
+        if (err || !perguntas || perguntas.length !== instancia.Notas.length) {
+            return callback(true)
+        }
+
+        database.serialize(() => {
+            database.run('BEGIN TRANSACTION')
+            let erro = false
+
+            const stmt = database.prepare(`
+            INSERT INTO Historico_de_Avaliacoes
+            (avaliador, avaliado, modelo, pergunta, nota, ciclo)
+            VALUES (?, ?, ?, ?, ?, ?)
+            `)
+
+            perguntas.forEach((pergunta, index) => {
+            stmt.run(
+                instancia.Avaliador,
+                instancia.Avaliado,
+                instancia.Modelo,
+                pergunta.id,
+                instancia.Notas[index],
+                instancia.Ciclo,
+                (e: Error | null) => {
+                if (e) erro = true
+                }
+            )
+            })
+
+            // 👇 AQUI está a correção principal
+            stmt.finalize((e: Error | null) => {
+            if (e) erro = true
+
+            database.run(
+                `
+                INSERT INTO Avaliacoes_Resultado
+                (avaliador, avaliado, modelo, ciclo, desempenho, potencial, nine_box)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+                `,
+                [
+                instancia.Avaliador,
+                instancia.Avaliado,
+                instancia.Modelo,
+                instancia.Ciclo,
+                instancia.Desempenho,
+                instancia.Potencial,
+                instancia.NineBox
+                ],
+                (e2: Error | null) => {
+                if (e2) erro = true
+
+                if (erro) {
                     database.run('ROLLBACK', () => callback(true))
+                } else {
+                    database.run('COMMIT', () => callback(false))
                 }
-                else {
-                    database.run('COMMIT', (err) =>  {
-                        if (err) {
-                            console.log("Erro no commit")
-                            return callback(true)
-                        }
-                        else {
-                            callback(false)
-                        }
-                    })
                 }
-                Nota_Maxima_Horizontal *= 5
-                Nota_Maxima_Vertical *= 5
-            }) 
+            )
+            })
         })
+        }
+    )
+    },
+    verificarAvaliacaoNoCiclo(
+    avaliado: number,
+    ciclo: string,
+    callback: (existe: boolean) => void
+    ) {
+    const sql = `
+        SELECT 1
+        FROM Avaliacoes_Resultado
+        WHERE avaliado = ? AND ciclo = ?
+        LIMIT 1
+    `
+
+    database.get(
+        sql,
+        [avaliado, ciclo],
+        (_err: Error | null, row) => {
+        callback(!!row)
+        }
+    )
+    },
+    buscarHistorico(
+    avaliadoId: number,
+    callback: (historico: {
+        ciclo: string
+        desempenho: number
+        potencial: number
+        nine_box: number
+    }[]) => void
+    ) {
+    const sql = `
+        SELECT
+        ciclo,
+        desempenho,
+        potencial,
+        nine_box
+        FROM Avaliacoes_Resultado
+        WHERE avaliado = ?
+        ORDER BY ciclo ASC
+    `
+
+    database.all(
+        sql,
+        [avaliadoId],
+        (
+        _err: Error | null,
+        rows: {
+            ciclo: string
+            desempenho: number
+            potencial: number
+            nine_box: number
+        }[]
+        ) => {
+        callback(rows || [])
+        }
+    )
     }
+
 }
 export default AvaliacaoRepository
