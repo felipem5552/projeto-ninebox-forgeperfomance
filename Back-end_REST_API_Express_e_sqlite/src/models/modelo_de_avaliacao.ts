@@ -1,4 +1,4 @@
-/** Tipo usado para armazenar a avaliação */
+// Tipo usado para armazenar a avaliação. 
 
 type Modelo_de_Avaliacao = {
     id?: number
@@ -6,4 +6,4 @@ type Modelo_de_Avaliacao = {
 }
 
 export default Modelo_de_Avaliacao
-/** Disponibiliza o tipo para uso em outros arquivos */
+// Disponibiliza o tipo para uso em outros arquivos. 

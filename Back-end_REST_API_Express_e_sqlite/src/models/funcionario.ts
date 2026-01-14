@@ -1,12 +1,12 @@
-/** Define os atributos do funcionário */  
+// Define os atributos do funcionário.  
 
 type Funcionario = {
     id?: number
     nome: string
     cargo: string
 
-    /** Capacidade do funcionário de alterar o código */
+    // Capacidade do funcionário de alterar o código.
     privilegios: string
 }
 export default Funcionario
-/** Disponibiliza o tipo para uso em outros arquivos */
+// Disponibiliza o tipo para uso em outros arquivos.
