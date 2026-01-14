@@ -10,6 +10,13 @@ const AvaliacaoRepository = {
             callback(this?.lastID)
         })
     },
+    alterarAvaliacao: (id: number, avaliacao: Modelo_de_Avaliacao, callback: (notFound: boolean) => void) => {
+    const sql = 'UPDATE Funcionarios SET titulo = ? WHERE id = ?'
+    const params = [avaliacao.titulo, id]
+    database.run(sql, params, function(_err) {
+        callback(this.changes === 0)
+    })
+    },
     inserirPerguntas: (modelo: number, pergunta: Pergunta, callback: (id?: number) => void) => {
         const sql = 'INSERT INTO Perguntas (enunciado, eixo, peso, modelo, disponibilidade) VALUES (?, ?, ?, ?, ?)'
         const params = [pergunta.enunciado, pergunta.eixo, pergunta.peso, modelo, "Disponível"]
