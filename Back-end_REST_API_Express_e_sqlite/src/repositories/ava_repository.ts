@@ -68,7 +68,6 @@ const AvaliacaoRepository = {
             )
             })
 
-            // 👇 AQUI está a correção principal
             stmt.finalize((e: Error | null) => {
             if (e) erro = true
 
