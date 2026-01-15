@@ -2,7 +2,7 @@ import express from 'express'
 import cors from 'cors'
 import funcionariosRouter from './routers/funcionarios_routers'
 import ava_Router from './routers/ava_routers'
-
+import relatoriosRouter from './routers/relatorios_router'
 
 const PORT = process.env.PORT || 4000
 const HOSTNAME = process.env.HOSTNAME || 'http://localhost'
@@ -21,7 +21,7 @@ app.use(cors({
 
 app.use('/api', funcionariosRouter)
 app.use('/api', ava_Router)
-
+app.use('/api', relatoriosRouter)
 
 app.use((req, res) => {
     res.status(404)

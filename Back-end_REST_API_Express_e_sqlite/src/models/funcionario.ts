@@ -3,6 +3,8 @@
 type Funcionario = {
     id?: number
     nome: string
+    time: string
+    email: string
     cargo: string
 
     // Capacidade do funcionário de alterar o código.

@@ -1,12 +1,27 @@
 import express from 'express'
 import Funcionario from '../models/funcionario'
 import funcionariosRepository from '../repositories/funcionarios_repository'
+import { emailValido } from '../services/validar_email'
 
 
 const funcionariosRouter = express.Router()
 funcionariosRouter.post('/funcionarios', (req, res) => {
     const funcionario: Funcionario = req.body
-    console.log(req.body)
+      if (!emailValido(funcionario.email)) {
+        return res.status(400).json({
+        erro: 'E-mail inválido'
+        })
+     }
+    funcionariosRepository.verificarEmailExistente(
+        funcionario.email,
+        (existe: boolean) => {
+        if (existe) {
+            return res.status(409).json({
+            erro: 'E-mail já cadastrado'
+            })
+        }
+        })
+    console.log(req.body)    
     funcionariosRepository.criar(funcionario, (id) => {
         if (id) {
             res.status(201).location(`/funcionarios/${id}`).send()
@@ -15,7 +30,10 @@ funcionariosRouter.post('/funcionarios', (req, res) => {
             res.status(400).send()
         }
     })
-})
+    }
+    )
+    
+
 funcionariosRouter.get('/funcionarios', (req, res) => {
     funcionariosRepository.lerTodos((funcionarios) => res.json(funcionarios))
 })

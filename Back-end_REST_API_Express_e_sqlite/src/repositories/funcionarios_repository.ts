@@ -10,11 +10,8 @@ const funcionarioRepository = {
      * @param { void } callback - Função callback que busca por ID.
      */
     criar: (funcionario: Funcionario, callback: (id?: number) => void) => {
-        const sql = 'INSERT INTO Funcionarios (nome, cargo, privilegios) VALUES (?, ?, ?)'
-
-        // Parâmetros necessários para a requisição POST.
-        const params = [funcionario.nome, funcionario.cargo, funcionario.privilegios]
-
+        const sql = 'INSERT INTO Funcionarios (nome, cargo, privilegios, time, email) VALUES (?, ?, ?, ?, ?)'
+        const params = [funcionario.nome, funcionario.cargo, funcionario.privilegios, funcionario.time, funcionario.email]
         database.run(sql, params, function(_err) {
             callback(this?.lastID)
         })
@@ -57,11 +54,8 @@ const funcionarioRepository = {
      * @param { void } callback - Função callback que define se o usuário foi encontrado ou não (True / False).
      */
     atualizar: (id: number, funcionario: Funcionario, callback: (notFound: boolean) => void) => {
-    const sql = 'UPDATE Funcionarios SET nome = ?, cargo = ?, privilegios = ? WHERE id = ?'
-
-    // Parâmetros necessários para atualização de dados
-    const params = [funcionario.nome, funcionario.cargo, funcionario.privilegios, id]
-
+    const sql = 'UPDATE Funcionarios SET nome = ?, cargo = ?, privilegios = ?, time = ?, email = ? WHERE id = ?'
+    const params = [funcionario.nome, funcionario.cargo, funcionario.privilegios, funcionario.time, funcionario.email, id]
     database.run(sql, params, function(_err) {
         callback(this.changes === 0)
     })
@@ -81,8 +75,18 @@ const funcionarioRepository = {
     database.run(sql, params, function(_err) {
         callback(this.changes === 0)
     })
+    },
+    verificarEmailExistente(
+    email: string,
+    callback: (existe: boolean) => void
+    ) {
+    const sql = `SELECT 1 FROM funcionarios WHERE email = ? LIMIT 1`
+
+    database.get(sql, [email], (_err, row) => {
+        callback(!!row)
+    })
     }
 }
 
 export default funcionarioRepository
-// Disponibiliza as requisições 
+// Disponibiliza o tipo para uso em outros arquivos
