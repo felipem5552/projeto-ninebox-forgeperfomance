@@ -2,8 +2,8 @@ import Funcionario from '../models/funcionario'
 import database from './database'
 const funcionarioRepository = {
     criar: (funcionario: Funcionario, callback: (id?: number) => void) => {
-        const sql = 'INSERT INTO Funcionarios (nome, cargo, privilegios) VALUES (?, ?, ?)'
-        const params = [funcionario.nome, funcionario.cargo, funcionario.privilegios]
+        const sql = 'INSERT INTO Funcionarios (nome, cargo, privilegios, time, email) VALUES (?, ?, ?, ?, ?)'
+        const params = [funcionario.nome, funcionario.cargo, funcionario.privilegios, funcionario.time, funcionario.email]
         database.run(sql, params, function(_err) {
             callback(this?.lastID)
         })
@@ -19,8 +19,8 @@ const funcionarioRepository = {
     database.get(sql, params, (_err, row: Funcionario) => callback(row))
     },
     atualizar: (id: number, funcionario: Funcionario, callback: (notFound: boolean) => void) => {
-    const sql = 'UPDATE Funcionarios SET nome = ?, cargo = ?, privilegios = ? WHERE id = ?'
-    const params = [funcionario.nome, funcionario.cargo, funcionario.privilegios, id]
+    const sql = 'UPDATE Funcionarios SET nome = ?, cargo = ?, privilegios = ?, time = ?, email = ? WHERE id = ?'
+    const params = [funcionario.nome, funcionario.cargo, funcionario.privilegios, funcionario.time, funcionario.email, id]
     database.run(sql, params, function(_err) {
         callback(this.changes === 0)
     })
@@ -30,6 +30,16 @@ const funcionarioRepository = {
     const params = [id]
     database.run(sql, params, function(_err) {
         callback(this.changes === 0)
+    })
+    },
+    verificarEmailExistente(
+    email: string,
+    callback: (existe: boolean) => void
+    ) {
+    const sql = `SELECT 1 FROM funcionarios WHERE email = ? LIMIT 1`
+
+    database.get(sql, [email], (_err, row) => {
+        callback(!!row)
     })
     }
 }

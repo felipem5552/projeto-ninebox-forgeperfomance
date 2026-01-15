@@ -9,8 +9,10 @@ const SQL_CREATE: string[] = [
   `
   CREATE TABLE IF NOT EXISTS funcionarios (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    nome TEXT,
+    nome TEXT NOT NULL,
     cargo TEXT,
+    time TEXT NOT NULL,
+    email TEXT NOT NULL UNIQUE,
     privilegios TEXT,
     data_de_ingresso TEXT DEFAULT CURRENT_DATE
   )
@@ -53,7 +55,6 @@ const SQL_CREATE: string[] = [
   )
   `,
 
-  // RESULTADO FINAL (NINE BOX)
   `
   CREATE TABLE IF NOT EXISTS avaliacoes_resultado (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -70,7 +71,6 @@ const SQL_CREATE: string[] = [
   )
   `,
 
-  // BLOQUEIO DE DUPLICIDADE POR CICLO
   `
   CREATE UNIQUE INDEX IF NOT EXISTS idx_avaliacao_ciclo
   ON avaliacoes_resultado (avaliado, ciclo)
