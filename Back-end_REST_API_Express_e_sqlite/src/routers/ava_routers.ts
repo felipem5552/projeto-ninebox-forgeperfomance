@@ -81,9 +81,31 @@ ava_Router.post('/avaliar', (req, res) => {
   )
 })
 
+ava_Router.put('/avaliacoes/:id', (req, res) => {
+    const id: number = +req.params.id
+    AvaliacaoRepository.alterarAvaliacao(id, req.body, (notFound) => {
+        if (notFound) {
+            res.status(404).send()
+        } else {
+            res.status(204).send()
+        }
+    })
+})
+
+ava_Router.put('/pergunta/:id', (req, res) => {
+    const id: number = +req.params.id
+    AvaliacaoRepository.alterarPergunta(id, req.body, (notFound) => {
+        if (notFound) {
+            res.status(404).send()
+        } else {
+            res.status(204).send()
+        }
+    })
+})
+
 ava_Router.delete('/perguntas/:id', (req, res) => {
     const id: number = +req.params.id
-    AvaliacaoRepository.apagarPergunta(id, (notFound) => {
+    AvaliacaoRepository.apagarPergunta_Real(id, (notFound) => {
         if (notFound) {
             res.status(404).send()
         } else {
