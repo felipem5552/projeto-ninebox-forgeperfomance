@@ -9,8 +9,8 @@ const AvaliacaoRepository = {
 
     // Método de requisição HTTP POST.
     /**
-     * @param { Modelo_de_Avaliacao } avaliacao - Busca por avaliações, deve ser aguardado pela função callback.
-     * @param { void } callback - Função callback que cria nova avaliação.
+     * @param { Modelo_de_Avaliacao } avaliacao - Busca por avaliações.
+     * @param { void } callback - Função callback que cria nova avaliação, deve aguardar banco de dados.
      */
     criarAvaliacao: (avaliacao: Modelo_de_Avaliacao, callback: (id?: number) => void) => {
         const sql = 'INSERT INTO Avaliacoes (titulo) VALUES (?)'
@@ -28,7 +28,7 @@ const AvaliacaoRepository = {
      * 
      * @param { number } id - Busca pelo ID da avaliação, espera pela função callback.
      * @param { Modelo_de_Avaliacao } avaliacao - Busca pela avaliação, espera pela função callback.
-     * @param { void } callback - Função callback que retorna se a avaliação existe ou não.
+     * @param { void } callback - Função callback que retorna se a avaliação existe ou não, deve aguardar banco de dados.
      */    
     alterarAvaliacao: (id: number, avaliacao: Modelo_de_Avaliacao, callback: (notFound: boolean) => void) => {
     const sql = 'UPDATE avaliacoes SET titulo = ? WHERE id = ?'
@@ -44,8 +44,8 @@ const AvaliacaoRepository = {
     // Método de requisição HTTP GET.
     /**
      * 
-     * @param { number } Id_Avaliacao - ID da avaliação para busca, deve esperar a função callback
-     * @param { void } callback - Função callback que retorna perguntas
+     * @param { number } Id_Avaliacao - ID da avaliação para busca, deve esperar a função callback.
+     * @param { void } callback - Função callback que retorna perguntas, deve aguardar banco de dados.
      */
     verAvaliacao: (Id_Avaliacao: number, callback: (perguntas: Pergunta[]) => void) => {
         const sql = 'SELECT * FROM Perguntas WHERE Modelo = ?'
@@ -59,14 +59,14 @@ const AvaliacaoRepository = {
     // Método de requisição HTTP POST.
     /**
      * 
-     * @param { number } modelo - 
-     * @param { Pergunta } pergunta - Busca 
-     * @param { void } callback - Função callback que retorna perguntas
+     * @param { number } modelo - Modelo da avaliação. 
+     * @param { Pergunta } pergunta - Pergunta (corpo).
+     * @param { void } callback - Função callback que retorna perguntas, deve aguarda banco de dados.
      */
     inserirPerguntas: (modelo: number, pergunta: Pergunta, callback: (id?: number) => void) => {
         const sql = 'INSERT INTO Perguntas (enunciado, eixo, peso, modelo, disponibilidade) VALUES (?, ?, ?, ?, ?)'
 
-        // Parâmetro de modelo (Como deve ser o corpo da pergunta)
+        // Parâmetro de modelo (Como deve ser o corpo da pergunta).
         const params = [pergunta.enunciado, pergunta.eixo, pergunta.peso, modelo, 1]
 
         database.run(sql, params, function(_err) {
@@ -77,14 +77,14 @@ const AvaliacaoRepository = {
     // Método de requisição HTTP PUT.
     /**
      * 
-     * @param id 
-     * @param pergunta 
-     * @param callback 
+     * @param id - ID da pergunta. 
+     * @param pergunta - Pergunta (corpo).
+     * @param callback - Função callback que retorna se pergunta existe ou não (True / False), deve aguardar banco de dados.
      */
     alterarPergunta: (id: number, pergunta: Pergunta, callback: (notFound: boolean) => void) => {
     const sql = 'UPDATE perguntas SET enunciado = ?, eixo = ?, peso = ?, modelo = ?, disponibilidade = ? WHERE id = ?'
 
-    // Parâmetro de modelo (Como deve ser o corpo da pergunta)
+    // Parâmetro de modelo (Como deve ser o corpo da pergunta).
     const params =  [pergunta.enunciado, pergunta.eixo, pergunta.peso, pergunta.modelo, 1, id]
 
     database.run(sql, params, function(_err) {
@@ -95,13 +95,13 @@ const AvaliacaoRepository = {
     // Método de requisição HTTP DELETE.
     /**
      * 
-     * @param id 
-     * @param callback 
+     * @param id - ID da pergunta.
+     * @param callback - Função callback que retorna se pergunta existe ou não (True / False), deve aguardar banco de dados.
      */    
     apagarPergunta_Real: (id: number, callback: (notFound: boolean) => void) => {
     const sql = 'DELETE FROM Perguntas WHERE id = ?'
 
-    // Parâmetro para busca (ID)
+    // Parâmetro para busca (ID).
     const params = [id]
 
     database.run(sql, params, function(_err) {
@@ -115,6 +115,7 @@ const AvaliacaoRepository = {
     ) {
     const sqlPerguntas = 'SELECT * FROM Perguntas WHERE Modelo = ?'
 
+    // Requisição GET.
     database.all(
         sqlPerguntas,
         [instancia.Modelo],
@@ -124,16 +125,19 @@ const AvaliacaoRepository = {
             return callback(true)
         }
 
+        // Força uma série de comandos a ser sequenciais, definindo uma operação por vez, evita conflitos entre TS e banco de dados.
         database.serialize(() => {
             database.run('BEGIN TRANSACTION')
             let erro = false
 
+            // Repetidor de query
             const stmt = database.prepare(`
             INSERT INTO Historico_de_Avaliacoes
             (avaliador, avaliado, modelo, pergunta, nota, ciclo)
             VALUES (?, ?, ?, ?, ?, ?)
             `)
 
+            // Insere-se no histórico de avaliações.
             perguntas.forEach((pergunta, index) => {
             stmt.run(
                 instancia.Avaliador,
@@ -169,6 +173,7 @@ const AvaliacaoRepository = {
                 (e2: Error | null) => {
                 if (e2) erro = true
 
+                // Se houver erros, ele descarta todas as alterações feitas pelo forEach.
                 if (erro) {
                     database.run('ROLLBACK', () => callback(true))
                 } else {
@@ -181,6 +186,7 @@ const AvaliacaoRepository = {
         }
     )
     },
+
     verificarAvaliacaoNoCiclo(
     avaliado: number,
     ciclo: string,
@@ -201,6 +207,7 @@ const AvaliacaoRepository = {
         }
     )
     },
+
     buscarHistorico(
     avaliadoId: number,
     callback: (historico: {
@@ -239,5 +246,6 @@ const AvaliacaoRepository = {
     }
 
 }
+
 export default AvaliacaoRepository
 // Disponibiliza as requisições
