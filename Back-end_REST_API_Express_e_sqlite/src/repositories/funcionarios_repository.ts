@@ -40,7 +40,7 @@ const funcionarioRepository = {
     ler: (id: number, callback: (funcionario?: Funcionario) => void) => {
     const sql = 'SELECT * FROM Funcionarios WHERE id = ?'
 
-    // Parâmetro para busca de funcionários via ID
+    // Parâmetro para busca de funcionários via ID.
     const params = [id]
 
     database.get(sql, params, (_err, row: Funcionario) => callback(row))
@@ -49,33 +49,37 @@ const funcionarioRepository = {
     // Método de requisição HTTP PUT.
     /**
      * 
-     * @param { number } id - Busca funcionário por ID, deve ser aguardado pela função callback
-     * @param { Funcionario } funcionario - Busca 
-     * @param { void } callback - Função callback que define se o usuário foi encontrado ou não (True / False).
+     * @param { number } id - Busca funcionário por ID.
+     * @param { Funcionario } funcionario - Funcionário (corpo).
+     * @param { void } callback - Função callback que define se o usuário foi encontrado ou não (True / False), deve aguardar banco de dados.
      */
     atualizar: (id: number, funcionario: Funcionario, callback: (notFound: boolean) => void) => {
     const sql = 'UPDATE Funcionarios SET nome = ?, cargo = ?, privilegios = ?, time = ?, email = ? WHERE id = ?'
+
+    // Parâmetro de modelo (Como deve ser o corpo JSON).
     const params = [funcionario.nome, funcionario.cargo, funcionario.privilegios, funcionario.time, funcionario.email, id]
     database.run(sql, params, function(_err) {
         callback(this.changes === 0)
     })
     },
 
-    // Método de requisição HTTP DELETE
+    // Método de requisição HTTP DELETE.
     /**
-     * @param { number } id - Use-o para definir qual funcionário deve ser apagado via ID, deve ser aguardado pela função callback
-     * @param { void } callback - Função callback que define se o usuário foi encontrado ou não (True / False)
+     * @param { number } id - Use-o para definir qual funcionário deve ser apagado via ID.
+     * @param { void } callback - Função callback que define se o usuário foi encontrado ou não (True / False), deve aguardar banco de dados.
      */
     apagar: (id: number, callback: (notFound: boolean) => void) => {
     const sql = 'DELETE FROM Funcionarios WHERE id = ?'
 
-    // Busca o funcionário por ID
+    // Busca o funcionário por ID.
     const params = [id]
 
     database.run(sql, params, function(_err) {
         callback(this.changes === 0)
     })
     },
+
+    // Verifica se existem funcionários sem e-mails cadastrados.
     verificarEmailExistente(
     email: string,
     callback: (existe: boolean) => void
@@ -89,4 +93,4 @@ const funcionarioRepository = {
 }
 
 export default funcionarioRepository
-// Disponibiliza o tipo para uso em outros arquivos
+// Disponibiliza o tipo para uso em outros arquivos.
