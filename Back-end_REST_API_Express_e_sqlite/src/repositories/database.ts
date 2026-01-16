@@ -77,6 +77,7 @@ const SQL_CREATE: string[] = [
   `
 ]
 
+// Roda em caso de erro
 const database = new sqlite3.Database(DBSOURCE, (err) => {
   if (err) {
     console.error('Erro ao conectar no banco:', err.message)
@@ -85,7 +86,7 @@ const database = new sqlite3.Database(DBSOURCE, (err) => {
 
   console.log('Base de dados conectada com sucesso.')
 
-  // ATIVAR FOREIGN KEYS
+  // Ativar foreign keys.
   database.run('PRAGMA foreign_keys = ON')
 
     database.serialize(() => {
@@ -100,3 +101,4 @@ const database = new sqlite3.Database(DBSOURCE, (err) => {
 })
 
 export default database
+// Disponibiliza banco de dados
