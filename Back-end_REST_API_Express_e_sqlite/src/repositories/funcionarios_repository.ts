@@ -1,4 +1,4 @@
-// Métodos de requisição HTTP para funcionários.
+// Define os métodos de requisição HTTP para funcionários.
 
 import Funcionario from '../models/funcionario'
 import database from './database'

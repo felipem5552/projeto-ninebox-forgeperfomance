@@ -1,4 +1,4 @@
-// Métodos de requisição HTTP para as avaliações.
+// Define os métodos de requisição HTTP para as avaliações.
 
 import Pergunta from "../models/pergunta";
 import Modelo_de_Avaliacao from "../models/modelo_de_avaliacao";
