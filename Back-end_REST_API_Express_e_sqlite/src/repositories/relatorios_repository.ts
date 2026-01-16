@@ -7,6 +7,8 @@ type RelatorioNineBoxPorTime = {
 }
 
 const RelatoriosRepository = { nineBoxPorTime( callback: (dados: RelatorioNineBoxPorTime[]) => void) {
+
+  // Define a média de notas (Potencial e Desempenho) pra cada time
     const sql = `
       SELECT
         f.time,
