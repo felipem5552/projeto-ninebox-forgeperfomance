@@ -5,6 +5,8 @@ import { emailValido } from '../services/validar_email'
 
 
 const funcionariosRouter = express.Router()
+
+// Define se usuário existe no banco de dados
 funcionariosRouter.post('/funcionarios', (req, res) => {
     const funcionario: Funcionario = req.body
       if (!emailValido(funcionario.email)) {
@@ -21,7 +23,9 @@ funcionariosRouter.post('/funcionarios', (req, res) => {
             })
         }
         })
-    console.log(req.body)    
+    console.log(req.body)  
+    
+    // Utiliza a requisuição POST
     funcionariosRepository.criar(funcionario, (id) => {
         if (id) {
             res.status(201).location(`/funcionarios/${id}`).send()
@@ -33,7 +37,7 @@ funcionariosRouter.post('/funcionarios', (req, res) => {
     }
     )
     
-
+// Utiliza a requisição GET
 funcionariosRouter.get('/funcionarios', (req, res) => {
     funcionariosRepository.lerTodos((funcionarios) => res.json(funcionarios))
 })
@@ -47,6 +51,8 @@ funcionariosRouter.get('/funcionarios/:id', (req, res) => {
         }
     })
 })
+
+// Utiliza a requisição UPDATE
 funcionariosRouter.put('/funcionarios/:id', (req, res) => {
     const id: number = +req.params.id
     funcionariosRepository.atualizar(id, req.body, (notFound) => {
@@ -57,6 +63,8 @@ funcionariosRouter.put('/funcionarios/:id', (req, res) => {
         }
     })
 })
+
+// Utiliza a requisição DELETE
 funcionariosRouter.delete('/funcionarios/:id', (req, res) => {
     const id: number = +req.params.id
     funcionariosRepository.apagar(id, (notFound) => {
@@ -67,4 +75,5 @@ funcionariosRouter.delete('/funcionarios/:id', (req, res) => {
         }
     })
 })
+
 export default funcionariosRouter

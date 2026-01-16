@@ -6,6 +6,8 @@ import Instancia_de_Avaliacao from '../models/instancia_de_avaliacao';
 import { calcularResultadoAvaliacao } from '../services/avaliacao_service'
 
 const ava_Router = express.Router()
+
+// Utiliza a requisição POST para avaliações
 ava_Router.post('/avaliacoes', (req, res) => {
     const avaliacao: Avaliacao = req.body
     AvaliacaoRepository.criarAvaliacao(avaliacao, (id) => {
@@ -18,6 +20,7 @@ ava_Router.post('/avaliacoes', (req, res) => {
     })
 })
 
+// Utiliza a requisição POST para perguntas
 ava_Router.post('/avaliacoes/:id', (req, res) => {
     const pergunta: Pergunta = req.body
     const modelo: number = +req.params.id
@@ -31,6 +34,7 @@ ava_Router.post('/avaliacoes/:id', (req, res) => {
     })
 })
 
+// Utiliza a requisição GET para perguntas e avaliações
 ava_Router.get('/avaliacoes/:id', (req, res) => {
     const id: number = +req.params.id
     AvaliacaoRepository.verAvaliacao(id, (perguntas) => {
@@ -81,6 +85,7 @@ ava_Router.post('/avaliar', (req, res) => {
   )
 })
 
+// Utiliza a requisição UPDATE para avaliações
 ava_Router.put('/avaliacoes/:id', (req, res) => {
     const id: number = +req.params.id
     AvaliacaoRepository.alterarAvaliacao(id, req.body, (notFound) => {
@@ -92,6 +97,7 @@ ava_Router.put('/avaliacoes/:id', (req, res) => {
     })
 })
 
+// Utiliza a requisição UPDATE para perguntas
 ava_Router.put('/pergunta/:id', (req, res) => {
     const id: number = +req.params.id
     AvaliacaoRepository.alterarPergunta(id, req.body, (notFound) => {
@@ -103,6 +109,7 @@ ava_Router.put('/pergunta/:id', (req, res) => {
     })
 })
 
+// Utiliza a requisição DELETE para perguntas
 ava_Router.delete('/perguntas/:id', (req, res) => {
     const id: number = +req.params.id
     AvaliacaoRepository.apagarPergunta_Real(id, (notFound) => {
@@ -114,6 +121,7 @@ ava_Router.delete('/perguntas/:id', (req, res) => {
     })
 })
 
+// Utiliza a requição GET usando ID de perguntas / avaliações
 ava_Router.get('/funcionarios/:id/historico', (req, res) => {
   const avaliadoId = Number(req.params.id)
 
