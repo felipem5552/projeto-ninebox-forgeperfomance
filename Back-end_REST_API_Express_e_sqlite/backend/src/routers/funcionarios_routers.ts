@@ -3,7 +3,6 @@ import Funcionario from '../models/funcionario'
 import funcionariosRepository from '../repositories/funcionarios_repository'
 import { emailValido } from '../services/validar_email'
 import AvaliacaoRepository from '../repositories/ava_repository'
-// 🔹 IMPORTAÇÃO DO SEU SERVIÇO (Passo 2)
 import { enviarConviteAvaliacao } from '../services/email_service'
 
 const funcionariosRouter = express.Router()
