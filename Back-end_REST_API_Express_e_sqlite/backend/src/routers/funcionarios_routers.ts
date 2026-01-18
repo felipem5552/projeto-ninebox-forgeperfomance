@@ -3,6 +3,8 @@ import Funcionario from '../models/funcionario'
 import funcionariosRepository from '../repositories/funcionarios_repository'
 import { emailValido } from '../services/validar_email'
 import AvaliacaoRepository from '../repositories/ava_repository'
+// 🔹 IMPORTAÇÃO DO SEU SERVIÇO (Passo 2)
+import { enviarConviteAvaliacao } from '../services/email_service'
 
 const funcionariosRouter = express.Router()
 
@@ -133,6 +135,7 @@ funcionariosRouter.delete(
     })
   }
 )
+
 /* ======================================================
    📌 CONSULTAS DO FUNCIONÁRIO
 ====================================================== */
@@ -170,6 +173,32 @@ funcionariosRouter.get('/funcionarios/:id/ultimo-modelo', (req, res) => {
       res.json({ modeloId })
     }
   )
+})
+
+
+ //  Envio de E-Mails
+
+// Enviar convites para todos os funcionários cadastrados
+funcionariosRouter.post('/funcionarios/enviar-convites', (req: Request, res: Response) => {
+  funcionariosRepository.lerTodos(async (funcionarios) => {
+    
+    if (!funcionarios || funcionarios.length === 0) {
+      return res.status(404).json({ erro: 'Nenhum funcionário encontrado para envio' })
+    }
+
+    const resultados = []
+
+    for (const f of funcionarios) {
+      // Chama o serviço de e-mail passando pelo banco de dados
+      const infoEnvio = await enviarConviteAvaliacao(f.email, f.nome)
+      resultados.push(infoEnvio)
+    }
+
+    res.json({
+      mensagem: 'Processo de envio finalizado',
+      relatorio: resultados
+    })
+  })
 })
 
 export default funcionariosRouter
