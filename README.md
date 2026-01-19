@@ -2,13 +2,13 @@
 
 #### `API completa para um sistema de avaliações 180º`
 
-## **🎯 Objetivo** 
+## **Objetivo** 
 
 O objetivo dessa **API** é proporcionar um projeto completo para ***autoavaliação e avaliação externa***. Além disso, proporciona um ***banco de dados*** configurado para armazenar funcionários, avaliações e perguntas.
 
 
 
-## **🤖 Tecnologias usadas** 
+## **Tecnologias usadas** 
 
 - Typescript `v5.9.3`
 
@@ -28,25 +28,52 @@ O objetivo dessa **API** é proporcionar um projeto completo para ***autoavalia�
 
 - Vite: `V7.3.1`
 
-### Para rodar completamente a API, usaremos dois terminais, respectivamente rodando o back-end e o front-end.
+- ### Para rodar completamente a API, usaremos dois terminais, respectivamente rodando o back-end e o front-end.
 
-## **🔮 Rodando a API (Back-End)**
+## **Preparando para rodar a API ([Linux]())**
 
+- A API foi originalmente feita em [Windows](), para rodá-la no [Linux]() é preciso realizar algumas mudanças. Para funcionar perfeitamente em [Linux](), é preciso deletar a pasta node_modules tanto do backend quanto do frontend, depois disso delete também a pasta package-lock.json do backend.
 
+- Depois disso, rode esse comando tanto na pasta backend quanto frontend:
 
-- Esse projeto apresenta um CRUD (Create, Read Update e Delete), vamos usar todas essas requisições no Insomnia.
+      npm install
 
-- Instale a aplicação [Insomnia](https://insomnia.rest/download) em sua máquina, usaremos ela para esse passo a passo.
-
-- Após isso, é necessário criar um perfil, conecte o Insomnia em quaisquer serviços de sua escolha.
-
-- Crie agora um workspace, escolha qualquer nome e agora podemos começar.
-
-- Dentro desse workspace, é necessário que se utilize as seguintes requisições ***(GET, POST, PUT e DELETE)***. Crie-as pelo botão **(+)**
-
-- Na parte superior, coloque a porta utilizada, pra esse caso será http://localhost:4000/api/
-
-### GET
-
+- A partir disso, todo o  código é funcional em Linux.
 
 ## **Iniciando o servidor**
+
+- Como dito anteriormente, vamos usar dois terminais para esse processo. Portanto, abra dois terminais, dirija um dos terminais à pasta backend e dirija o outro para a pasta frontend. Usando esse comando vá até o backend:
+
+      cd Back-end_REST_API_Express_e_sqlite/backend
+
+- Para o frontend use esse comando:
+
+      cd  Back-end_REST_API_Express_e_sqlite/frontend
+
+- Agora, é preciso iniciar o servidor em ambos os terminais, digite o seguinte comando em AMBOS:
+
+      npm run dev
+
+## **Rodando o sistema**
+
+- Agora que tudo está organizado, se dirija para http://localhost:5173 e faça login.
+
+- Para logar como Gestor use:
+
+      E-mail: gestor@gmail.com
+
+      Senha: gestor
+
+- Para logar como Admin use:
+
+      E-mail: admin@gmail.com
+
+      Senha: admin
+
+- Para logar como usuário use:
+
+      E-mail: funcionario@gmail.com
+
+      Senha: funcionario
+
+- Caso o usuário não tenha sido cadastrado, ele precisa criar uma nova senha.
