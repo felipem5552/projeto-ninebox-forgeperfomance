@@ -87,4 +87,4 @@ graph TD
     B -->|Gera Token/Sessão| A
     A -->|Envia Avaliação 180º| B
     B -->|Salva Respostas| C
-    B -->|Envia E-mail de Confirmação| D[Nodemailer]`
+    B -->|Envia E-mail de Confirmação| D[Nodemailer]
