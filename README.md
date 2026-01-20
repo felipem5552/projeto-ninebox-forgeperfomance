@@ -78,7 +78,8 @@ O objetivo dessa **API** é proporcionar um projeto completo para ***autoavalia�
 
 - Caso o usuário não tenha sido cadastrado, ele precisa criar uma nova senha.
 
----
+## Diagrama do sistema
+
 ```mermaid
 graph TD
     A[Frontend: React] -->|Requisição Login| B(Backend: Express)
