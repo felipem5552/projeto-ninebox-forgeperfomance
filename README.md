@@ -6,7 +6,23 @@
 
 O objetivo dessa **API** é proporcionar um projeto completo para ***autoavaliação e avaliação externa***. Além disso, proporciona um ***banco de dados*** configurado para armazenar funcionários, avaliações e perguntas.
 
+## **O que o sistema entrega**
 
+**Visão do Colaborador:**
+
+- Interface intuitiva para realizar a avaliação 180º.
+
+- Segurança no primeiro acesso com criação de senha personalizada.
+
+**Visão do Gestor:**
+
+- Dashboard centralizado para visualizar a equipe.
+
+- Geração automática da Matriz Nine Box baseada nas avaliações.
+
+**Automação e Comunicação:**
+
+- Envio de e-mails de confirmação e alertas via Nodemailer.
 
 ## **Tecnologias usadas** 
 
