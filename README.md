@@ -60,20 +60,22 @@ O objetivo dessa **API** é proporcionar um projeto completo para ***autoavalia�
 
 - Para logar como Gestor use:
 
-      E-mail: gestor@gmail.com
+      E-mail: gestor@bitforge.com
 
       Senha: gestor
 
 - Para logar como Admin use:
 
-      E-mail: admin@gmail.com
+      E-mail: admin@bitforge.com
 
       Senha: admin
 
 - Para logar como usuário use:
 
-      E-mail: funcionario@gmail.com
+      E-mail: funcionario@bitforge.com
 
       Senha: funcionario
 
 - Caso o usuário não tenha sido cadastrado, ele precisa criar uma nova senha.
+
+---
