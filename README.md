@@ -79,3 +79,12 @@ O objetivo dessa **API** é proporcionar um projeto completo para ***autoavalia�
 - Caso o usuário não tenha sido cadastrado, ele precisa criar uma nova senha.
 
 ---
+```mermaid
+graph TD
+    A[Frontend: React] -->|Requisição Login| B(Backend: Express)
+    B -->|Consulta Credenciais| C[(Banco: SQLite3)]
+    C -->|Retorna Usuário| B
+    B -->|Gera Token/Sessão| A
+    A -->|Envia Avaliação 180º| B
+    B -->|Salva Respostas| C
+    B -->|Envia E-mail de Confirmação| D[Nodemailer]`
