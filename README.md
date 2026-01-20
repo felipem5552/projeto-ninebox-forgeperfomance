@@ -72,7 +72,7 @@ O objetivo dessa **API** é proporcionar um projeto completo para ***autoavalia�
 
 - Para logar como usuário use:
 
-      E-mail: funcionario@bitforge.com
+      E-mail: funcionario@gmail.com
 
       Senha: funcionario
 
