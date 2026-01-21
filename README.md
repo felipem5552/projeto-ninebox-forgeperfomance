@@ -82,13 +82,13 @@ O objetivo dessa **API** é proporcionar um projeto completo para ***autoavalia�
 
 - Para logar como Admin use:
 
-      E-mail: admin@bitforge.com
+      E-mail: admin1@bitforge.com
 
-      Senha: admin
+      Senha: admin1
 
 - Para logar como usuário use:
 
-      E-mail: funcionario@gmail.com
+      E-mail: funcionario@bitforge.com
 
       Senha: funcionario
 
