@@ -19,7 +19,8 @@
     "express": "^5.2.1",
     "nodemailer": "^7.0.12",
     "sqlite3": "^5.1.7",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/cors": "^2.8.19",
