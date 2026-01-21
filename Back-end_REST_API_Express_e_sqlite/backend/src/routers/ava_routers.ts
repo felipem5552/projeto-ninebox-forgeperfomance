@@ -1,197 +1,259 @@
-import express from 'express'
+import express, { Request, Response } from 'express'
 import Pergunta from '../models/pergunta'
 import Instancia_de_Avaliacao from '../models/instancia_de_avaliacao'
 import AvaliacaoRepository from '../repositories/ava_repository'
 import { calcularResultadoAvaliacao } from '../services/avaliacao_service'
+import CicloRepository from '../repositories/ciclo_repository'
 
 const ava_Router = express.Router()
 
-/* ======================================================
-   📌 MODELOS DE AVALIAÇÃO
-====================================================== */
 
-// 🔹 Lista modelos de avaliação
-ava_Router.get('/avaliacoes', (req, res) => {
+// - MODELOS DE AVALIAÇÃO
+
+
+// - LISTAR MODELOS
+ava_Router.get('/avaliacoes', (_req: Request, res: Response) => {
   AvaliacaoRepository.listarModelos(modelos => {
     res.json(modelos)
   })
 })
 
-// 🔹 Cria novo modelo de avaliação
-ava_Router.post('/avaliacoes', (req, res) => {
-  const avaliacao = req.body
+// - CRIAR MODELO
+ava_Router.post('/avaliacoes', (req: Request, res: Response) => {
+  const { titulo } = req.body as { titulo?: string }
 
-  if (!avaliacao?.titulo) {
+  if (!titulo || titulo.trim() === '') {
     return res.status(400).json({ erro: 'Título é obrigatório' })
   }
 
-  AvaliacaoRepository.criarAvaliacao(avaliacao, id => {
-    if (!id) {
-      return res.status(400).json({ erro: 'Erro ao criar avaliação' })
-    }
+  AvaliacaoRepository.criarAvaliacao(
+    { titulo: titulo.trim() },
+    id => {
+      if (!id) {
+        return res.status(400).json({
+          erro: 'Erro ao criar avaliação'
+        })
+      }
 
-    res.status(201).json({ id })
-  })
+      res.status(201).json({ id })
+    }
+  )
 })
 
-// 🔹 Atualiza título do modelo
-ava_Router.put('/avaliacoes/:id', (req, res) => {
+// - ATUALIZAR MODELO
+ava_Router.put('/avaliacoes/:id', (req: Request, res: Response) => {
   const id = Number(req.params.id)
+  const { titulo } = req.body as { titulo?: string }
 
-  AvaliacaoRepository.alterarAvaliacao(id, req.body, notFound => {
-    if (notFound) {
-      res.status(404).json({ erro: 'Modelo não encontrado' })
-    } else {
+  if (!titulo || titulo.trim() === '') {
+    return res.status(400).json({ erro: 'Título é obrigatório' })
+  }
+
+  AvaliacaoRepository.alterarAvaliacao(
+    id,
+    { titulo: titulo.trim() },
+    notFound => {
+      if (notFound) {
+        return res.status(404).json({
+          erro: 'Modelo não encontrado'
+        })
+      }
+
       res.status(204).send()
     }
-  })
+  )
 })
 
-// 🔹 Verifica se modelo já foi usado
-ava_Router.get('/avaliacoes/:id/uso', (req, res) => {
+// - VERIFICAR USO DO MODELO
+ava_Router.get('/avaliacoes/:id/uso', (req: Request, res: Response) => {
   const modeloId = Number(req.params.id)
 
-  AvaliacaoRepository.modeloFoiUsado(modeloId, total => {
-    res.json({ total })
-  })
-})
-
-/* ======================================================
-   📌 PERGUNTAS DO MODELO
-====================================================== */
-
-// 🔹 Lista perguntas do modelo
-ava_Router.get('/avaliacoes/:id', (req, res) => {
-  const id = Number(req.params.id)
-
-  AvaliacaoRepository.verAvaliacao(id, perguntas => {
-    res.json(perguntas)
-  })
-})
-
-// 🔹 Adiciona pergunta ao modelo
-ava_Router.post('/avaliacoes/:id', (req, res) => {
-  const modelo = Number(req.params.id)
-  const pergunta: Pergunta = req.body
-
-  AvaliacaoRepository.inserirPerguntas(modelo, pergunta, id => {
-    if (!id) {
-      return res.status(400).json({ erro: 'Erro ao inserir pergunta' })
+  AvaliacaoRepository.modeloFoiUsado(
+    modeloId,
+    total => {
+      res.json({ total })
     }
-
-    res.status(201).json({ id })
-  })
+  )
 })
 
-// 🔹 Atualiza pergunta
-ava_Router.put('/pergunta/:id', (req, res) => {
-  const id = Number(req.params.id)
 
-  AvaliacaoRepository.alterarPergunta(id, req.body, notFound => {
-    if (notFound) {
-      res.status(404).json({ erro: 'Pergunta não encontrada' })
-    } else {
+// - PERGUNTAS
+
+
+// - LISTAR PERGUNTAS DO MODELO
+ava_Router.get('/avaliacoes/:id', (req: Request, res: Response) => {
+  const modeloId = Number(req.params.id)
+
+  AvaliacaoRepository.verAvaliacao(
+    modeloId,
+    perguntas => {
+      res.json(perguntas)
+    }
+  )
+})
+
+// - ADICIONAR PERGUNTA
+ava_Router.post('/avaliacoes/:id', (req: Request, res: Response) => {
+  const modeloId = Number(req.params.id)
+  const pergunta = req.body as Pergunta
+
+  AvaliacaoRepository.inserirPerguntas(
+    modeloId,
+    pergunta,
+    id => {
+      if (!id) {
+        return res.status(400).json({
+          erro: 'Erro ao inserir pergunta'
+        })
+      }
+
+      res.status(201).json({ id })
+    }
+  )
+})
+
+// - ATUALIZAR PERGUNTA
+ava_Router.put('/pergunta/:id', (req: Request, res: Response) => {
+  const id = Number(req.params.id)
+  const pergunta = req.body as Pergunta
+
+  AvaliacaoRepository.alterarPergunta(
+    id,
+    pergunta,
+    notFound => {
+      if (notFound) {
+        return res.status(404).json({
+          erro: 'Pergunta não encontrada'
+        })
+      }
+
       res.status(204).send()
     }
-  })
+  )
 })
 
-// 🔹 Exclui pergunta
-ava_Router.delete('/perguntas/:id', (req, res) => {
+// - REMOVER PERGUNTA
+ava_Router.delete('/perguntas/:id', (req: Request, res: Response) => {
   const id = Number(req.params.id)
 
-  AvaliacaoRepository.apagarPergunta_Real(id, notFound => {
-    if (notFound) {
-      res.status(404).json({ erro: 'Pergunta não encontrada' })
-    } else {
+  AvaliacaoRepository.apagarPergunta_Real(
+    id,
+    notFound => {
+      if (notFound) {
+        return res.status(404).json({
+          erro: 'Pergunta não encontrada'
+        })
+      }
+
       res.status(204).send()
     }
-  })
+  )
 })
 
-/* ======================================================
-   📌 AVALIAÇÃO DO GESTOR
-====================================================== */
 
-ava_Router.post('/avaliar', (req, res) => {
-  const instancia: Instancia_de_Avaliacao = req.body
+// - AVALIAÇÃO DO GESTOR
 
+
+ava_Router.post('/avaliar', (req: Request, res: Response) => {
+  const instancia = req.body as Instancia_de_Avaliacao
+
+  // - BUSCA CICLO ATIVO
+  CicloRepository.buscarAtivo(ciclo => {
+    if (!ciclo) {
+      return res.status(400).json({
+        erro: 'Nenhum ciclo de avaliação ativo'
+      })
+    }
+
+    // - VERIFICA DUPLICIDADE
     AvaliacaoRepository.verificarAvaliacaoNoCiclo(
       instancia.Avaliado,
-      instancia.Ciclo,
+      ciclo.id,
       'GESTOR',
-      (existe: boolean) => {
+      existe => {
         if (existe) {
           return res.status(409).json({
-            erro: 'Avaliação já realizada para este funcionário neste ciclo'
+            erro: 'Avaliação já realizada neste ciclo'
           })
         }
 
-      const resultado = calcularResultadoAvaliacao(instancia.Notas)
+        const resultado = calcularResultadoAvaliacao(
+          instancia.Notas
+        )
 
-      const instanciaCompleta: Instancia_de_Avaliacao = {
-        ...instancia,
-        Desempenho: resultado.desempenho,
-        Potencial: resultado.potencial,
-        NineBox: resultado.nineBox
+        // - REGISTRA AVALIAÇÃO
+        AvaliacaoRepository.Avaliar(
+          {
+            ...instancia,
+            CicloId: ciclo.id,
+            Desempenho: resultado.desempenho,
+            Potencial: resultado.potencial,
+            NineBox: resultado.nineBox
+          },
+          erro => {
+            if (erro) {
+              return res.status(400).json({
+                erro: 'Erro ao registrar avaliação'
+              })
+            }
+
+            res.status(201).json({
+              sucesso: true
+            })
+          }
+        )
       }
+    )
+  })
+})
 
-      AvaliacaoRepository.Avaliar(instanciaCompleta, erro => {
+
+// - AUTOAVALIAÇÃO
+
+
+ava_Router.post('/autoavaliacao', (req: Request, res: Response) => {
+  const { avaliado, modelo, notas } = req.body as {
+    avaliado?: number
+    modelo?: number
+    notas?: number[]
+  }
+
+  if (
+    typeof avaliado !== 'number' ||
+    typeof modelo !== 'number' ||
+    !Array.isArray(notas)
+  ) {
+    return res.status(400).json({
+      erro: 'Dados inválidos'
+    })
+  }
+
+  // - BUSCA CICLO ATIVO
+  CicloRepository.buscarAtivo(ciclo => {
+    if (!ciclo) {
+      return res.status(400).json({
+        erro: 'Nenhum ciclo de avaliação ativo'
+      })
+    }
+
+    AvaliacaoRepository.registrarAutoavaliacao(
+      avaliado,
+      modelo,
+      ciclo.id,
+      notas,
+      erro => {
         if (erro) {
-          return res.status(400).json({
-            erro: 'Erro ao registrar avaliação'
+          return res.status(409).json({
+            erro: 'Autoavaliação já realizada neste ciclo'
           })
         }
 
         res.status(201).json({
-          sucesso: true,
-          desempenho: instanciaCompleta.Desempenho,
-          potencial: instanciaCompleta.Potencial,
-          nineBox: instanciaCompleta.NineBox
-        })
-      })
-    }
-  )
-})
-
-/* ======================================================
-   📌 AUTOAVALIAÇÃO DO FUNCIONÁRIO
-====================================================== */
-
-ava_Router.post('/autoavaliacao', (req, res) => {
-  const { avaliado, modelo, ciclo, notas } = req.body
-
-  if (!avaliado || !modelo || !ciclo || !Array.isArray(notas)) {
-    return res.status(400).json({ erro: 'Dados inválidos' })
-  }
-  AvaliacaoRepository.verificarAvaliacaoNoCiclo(
-  avaliado,
-  ciclo,
-  'AUTO',
-  existe => {
-    if (existe) {
-      return res.status(409).json({
-        erro: 'Autoavaliação já realizada neste ciclo'
-      })
-    }
-  AvaliacaoRepository.registrarAutoavaliacao(
-    avaliado,
-    modelo,
-    ciclo,
-    notas,
-    (erro: boolean) => {
-      if (erro) {
-        return res.status(400).json({
-          erro: 'Erro ao registrar autoavaliação'
+          mensagem: 'Autoavaliação registrada com sucesso'
         })
       }
-
-      res.status(201).json({
-        mensagem: 'Autoavaliação registrada com sucesso'
-      })
-    }
-  )
-})
+    )
+  })
 })
 
 export default ava_Router

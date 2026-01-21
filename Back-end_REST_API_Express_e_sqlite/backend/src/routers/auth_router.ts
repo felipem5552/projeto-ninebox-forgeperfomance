@@ -15,14 +15,18 @@ authRouter.post('/login', (req, res) => {
 
   funcionariosRepository.buscarPorEmail(email, (usuario) => {
 
-    // ❌ EMAIL NÃO ENCONTRADO
     if (!usuario) {
       return res.status(404).json({
         erro: 'Usuário não encontrado'
       })
     }
+      if (usuario.ativo === 0) {
+    return res.status(403).json({
+      erro: 'Usuário desativado. Procure o administrador.'
+    })
+}
 
-    // 🔑 PRIMEIRO ACESSO (sem senha cadastrada)
+    //- PRIMEIRO ACESSO
     if (!usuario.senha) {
       return res.json({
         primeiroAcesso: true,
@@ -30,14 +34,14 @@ authRouter.post('/login', (req, res) => {
       })
     }
 
-    // ❌ SENHA INCORRETA
+  
     if (usuario.senha !== senha) {
       return res.status(401).json({
         erro: 'Senha incorreta'
       })
     }
 
-    // ✅ LOGIN OK
+    //-  LOGIN FEITO
     return res.json({
       id: usuario.id,
       nome: usuario.nome,
@@ -46,6 +50,51 @@ authRouter.post('/login', (req, res) => {
     })
   })
 })
+
+
+// - VALIDAR PRIMEIRO ACESSO 
+
+authRouter.post(
+  '/primeiro-acesso-validar',
+  (req: Request, res: Response) => {
+    const { email } = req.body
+
+    if (!email) {
+      return res.status(400).json({
+        erro: 'Email é obrigatório'
+      })
+    }
+
+    funcionariosRepository.buscarPorEmail(
+      email,
+      usuario => {
+        if (!usuario) {
+          return res.status(404).json({
+            erro: 'Usuário não encontrado'
+          })
+        }
+
+        if (usuario.senha) {
+          return res.status(409).json({
+            erro: 'Usuário já possui senha'
+          })
+        }
+
+        if (usuario.ativo === 0) {
+          return res.status(403).json({
+            erro: 'Usuário desativado'
+          })
+        }
+
+        // - PRIMEIRO ACESSO PERMITIDO
+        return res.json({
+          id: usuario.id
+        })
+      }
+    )
+  }
+)
+
 
 authRouter.post('/primeiro-acesso', (req: Request, res: Response) => {
   const { id, senha } = req.body

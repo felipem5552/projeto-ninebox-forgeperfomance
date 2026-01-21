@@ -1,35 +1,47 @@
 import database from './database'
 import Pergunta from '../models/pergunta'
 import Instancia_de_Avaliacao from '../models/instancia_de_avaliacao'
+import { calcularResultadoAvaliacao } from '../services/avaliacao_service'
+
+// - TIPOS AUXILIARES
+type ModeloRow = { id: number; titulo: string }
+type CountRow = { total: number }
+type PerguntaRow = { id: number }
+type ResultadoRow = { modelo: number }
+
+type HistoricoRow = {
+  ciclo_id: number
+  ciclo_nome: string
+  desempenho: number
+  potencial: number
+  nine_box: number
+  tipo: 'GESTOR' | 'AUTO'
+}
 
 const AvaliacaoRepository = {
-  /* =========================
-     📋 MODELOS
-  ========================= */
 
-  listarModelos(
-    callback: (modelos: { id: number; titulo: string }[]) => void
-    ) {
-    const sql = 'SELECT id, titulo FROM avaliacoes'
 
+  // - MODELOS
+
+  listarModelos(callback: (modelos: ModeloRow[]) => void) {
     database.all(
-        sql,
-        [],
-        (_err: Error | null, rows: { id: number; titulo: string }[]) => {
-        callback(rows || [])
-        }
+      'SELECT id, titulo FROM avaliacoes',
+      [],
+      (_err, rows: ModeloRow[]) => callback(rows ?? [])
     )
-    },
+  },
 
   criarAvaliacao(
     avaliacao: { titulo: string },
     callback: (id?: number) => void
   ) {
-    const sql = 'INSERT INTO avaliacoes (titulo) VALUES (?)'
-
-    database.run(sql, [avaliacao.titulo], function () {
-      callback(this.lastID)
-    })
+    database.run(
+      'INSERT INTO avaliacoes (titulo) VALUES (?)',
+      [avaliacao.titulo],
+      function () {
+        callback(this.lastID)
+      }
+    )
   },
 
   alterarAvaliacao(
@@ -37,76 +49,56 @@ const AvaliacaoRepository = {
     avaliacao: { titulo: string },
     callback: (notFound: boolean) => void
   ) {
-    const sql = 'UPDATE avaliacoes SET titulo = ? WHERE id = ?'
-
-    database.run(sql, [avaliacao.titulo, id], function () {
-      callback(this.changes === 0)
-    })
+    database.run(
+      'UPDATE avaliacoes SET titulo = ? WHERE id = ?',
+      [avaliacao.titulo, id],
+      function () {
+        callback(this.changes === 0)
+      }
+    )
   },
 
-  modeloFoiUsado(
-    modeloId: number,
-    callback: (total: number) => void
+  modeloFoiUsado(modeloId: number, callback: (total: number) => void) {
+    database.get(
+      'SELECT COUNT(*) as total FROM avaliacoes_resultado WHERE modelo = ?',
+      [modeloId],
+      (_err, row: CountRow | undefined) => callback(row?.total ?? 0)
+    )
+  },
+
+  buscarUltimoModeloDoFuncionario(
+    funcionarioId: number,
+    callback: (modeloId: number | null) => void
   ) {
     const sql = `
-      SELECT COUNT(*) as total
+      SELECT modelo
       FROM avaliacoes_resultado
-      WHERE modelo = ?
+      WHERE avaliado = ?
+        AND tipo = 'GESTOR'
+      ORDER BY ciclo_id DESC
+      LIMIT 1
     `
 
-    database.get(sql, [modeloId], (_err, row: any) => {
-      callback(row?.total || 0)
+    database.get(sql, [funcionarioId], (_err, row: ResultadoRow | undefined) => {
+      callback(row ? row.modelo : null)
     })
   },
 
- buscarUltimoModeloDoFuncionario(
-  funcionarioId: number,
-  callback: (modeloId: number | null) => void
-) {
-  const sql = `
-    SELECT modelo
-    FROM avaliacoes_resultado
-    WHERE avaliado = ?
-      AND tipo = 'GESTOR'
-    ORDER BY ciclo DESC
-    LIMIT 1
-  `
 
-  database.get(
-    sql,
-    [funcionarioId],
-    (err: Error | null, row: { modelo: number } | undefined) => {
-      if (err || !row) {
-        callback(null)
-      } else {
-        callback(row.modelo)
-      }
-    }
-  )
-},
+  // - PERGUNTAS
 
-  /* =========================
-     ❓ PERGUNTAS
-  ========================= */
-
-  verAvaliacao(
-    modeloId: number,
-    callback: (perguntas: Pergunta[]) => void
-  ) {
+  verAvaliacao(modeloId: number, callback: (perguntas: Pergunta[]) => void) {
     const sql = `
       SELECT id, enunciado, eixo, peso
       FROM perguntas
-      WHERE modelo = ? AND disponibilidade = 1
+      WHERE modelo = ?
+        AND disponibilidade = 1
       ORDER BY id ASC
     `
 
-    database.all(
-    sql,
-    [modeloId],
-    (_err: Error | null, rows: Pergunta[]) => {
-        callback(rows || [])
-    }
-    )
+    database.all(sql, [modeloId], (_err, rows: Pergunta[]) => {
+      callback(rows ?? [])
+    })
   },
 
   inserirPerguntas(
@@ -114,13 +106,11 @@ const AvaliacaoRepository = {
     pergunta: Pergunta,
     callback: (id?: number) => void
   ) {
-    const sql = `
+    database.run(
+      `
       INSERT INTO perguntas (enunciado, eixo, peso, modelo)
       VALUES (?, ?, ?, ?)
-    `
-
-    database.run(
-      sql,
+      `,
       [pergunta.enunciado, pergunta.eixo, pergunta.peso, modelo],
       function () {
         callback(this.lastID)
@@ -133,14 +123,12 @@ const AvaliacaoRepository = {
     pergunta: Pergunta,
     callback: (notFound: boolean) => void
   ) {
-    const sql = `
+    database.run(
+      `
       UPDATE perguntas
       SET enunciado = ?, eixo = ?, peso = ?
       WHERE id = ?
-    `
-
-    database.run(
-      sql,
+      `,
       [pergunta.enunciado, pergunta.eixo, pergunta.peso, id],
       function () {
         callback(this.changes === 0)
@@ -148,23 +136,49 @@ const AvaliacaoRepository = {
     )
   },
 
-  apagarPergunta_Real(
-    id: number,
-    callback: (notFound: boolean) => void
-  ) {
-    const sql = 'DELETE FROM perguntas WHERE id = ?'
+  apagarPergunta_Real(id: number, callback: (notFound: boolean) => void) {
+    database.run(
+      'DELETE FROM perguntas WHERE id = ?',
+      [id],
+      function () {
+        callback(this.changes === 0)
+      }
+    )
+  },
 
-    database.run(sql, [id], function () {
-      callback(this.changes === 0)
+
+  // - VERIFICA AVALIAÇÃO NO CICLO
+
+  verificarAvaliacaoNoCiclo(
+    avaliado: number,
+    cicloId: number,
+    tipo: 'GESTOR' | 'AUTO',
+    callback: (existe: boolean) => void
+  ) {
+    const sql = `
+      SELECT 1
+      FROM avaliacoes_resultado
+      WHERE avaliado = ?
+        AND ciclo_id = ?
+        AND tipo = ?
+      LIMIT 1
+    `
+
+    database.get(sql, [avaliado, cicloId, tipo], (_err, row) => {
+      callback(!!row)
     })
   },
 
-  /* =========================
-     🧑‍💼 AVALIAÇÃO DO GESTOR
-  ========================= */
+
+  // - AVALIAÇÃO DO GESTOR
 
   Avaliar(
-    instancia: Instancia_de_Avaliacao,
+    instancia: Instancia_de_Avaliacao & {
+      CicloId: number
+      Desempenho: number
+      Potencial: number
+      NineBox: number
+    },
     callback: (erro: boolean) => void
   ) {
     const sqlPerguntas = `
@@ -178,7 +192,7 @@ const AvaliacaoRepository = {
     database.all(
       sqlPerguntas,
       [instancia.Modelo],
-      (_err, perguntas: { id: number }[]) => {
+      (_err, perguntas: PerguntaRow[]) => {
         if (!perguntas || perguntas.length !== instancia.Notas.length) {
           return callback(true)
         }
@@ -189,7 +203,7 @@ const AvaliacaoRepository = {
 
           const stmt = database.prepare(`
             INSERT INTO historico_de_avaliacoes
-            (avaliador, avaliado, modelo, pergunta, nota, ciclo, tipo)
+            (avaliador, avaliado, modelo, pergunta, nota, ciclo_id, tipo)
             VALUES (?, ?, ?, ?, ?, ?, 'GESTOR')
           `)
 
@@ -200,7 +214,7 @@ const AvaliacaoRepository = {
               instancia.Modelo,
               p.id,
               instancia.Notas[index],
-              instancia.Ciclo,
+              instancia.CicloId,
               (e: Error | null) => {
                 if (e) erro = true
               }
@@ -211,125 +225,19 @@ const AvaliacaoRepository = {
             database.run(
               `
               INSERT INTO avaliacoes_resultado
-              (avaliador, avaliado, modelo, ciclo, desempenho, potencial, nine_box, tipo)
+              (avaliador, avaliado, modelo, ciclo_id, desempenho, potencial, nine_box, tipo)
               VALUES (?, ?, ?, ?, ?, ?, ?, 'GESTOR')
               `,
               [
                 instancia.Avaliador,
                 instancia.Avaliado,
                 instancia.Modelo,
-                instancia.Ciclo,
+                instancia.CicloId,
                 instancia.Desempenho,
                 instancia.Potencial,
                 instancia.NineBox
               ],
-              (e: Error | null) => {
-                if (e) erro = true
-
-                database.run(
-                  erro ? 'ROLLBACK' : 'COMMIT',
-                  () => callback(erro)
-                )
-              }
-            )
-          })
-        })
-      }
-    )
-  },
-  verificarAvaliacaoNoCiclo(
-  avaliado: number,
-  ciclo: string,
-  tipo: 'GESTOR' | 'AUTO',
-  callback: (existe: boolean) => void
-) {
-  const sql = `
-    SELECT 1
-    FROM avaliacoes_resultado
-    WHERE avaliado = ?
-      AND ciclo = ?
-      AND tipo = ?
-    LIMIT 1
-  `
-
-  database.get(
-    sql,
-    [avaliado, ciclo, tipo],
-    (_err, row) => {
-      callback(!!row)
-    }
-  )
-},
-
-  /* =========================
-     🧍 AUTOAVALIAÇÃO
-  ========================= */
-
-  registrarAutoavaliacao(
-    avaliado: number,
-    modelo: number,
-    ciclo: string,
-    notas: number[],
-    callback: (erro: boolean) => void
-  ) {
-    const sqlPerguntas = `
-      SELECT id
-      FROM perguntas
-      WHERE modelo = ?
-        AND disponibilidade = 1
-      ORDER BY id ASC
-    `
-
-    database.all(
-      sqlPerguntas,
-      [modelo],
-      (_err, perguntas: { id: number }[]) => {
-        if (!perguntas || perguntas.length !== notas.length) {
-          return callback(true)
-        }
-
-        database.serialize(() => {
-          database.run('BEGIN TRANSACTION')
-          let erro = false
-
-          const stmt = database.prepare(`
-            INSERT INTO historico_de_avaliacoes
-            (avaliador, avaliado, modelo, pergunta, nota, ciclo, tipo)
-            VALUES (?, ?, ?, ?, ?, ?, 'AUTO')
-          `)
-
-          perguntas.forEach((p, index) => {
-            stmt.run(
-              avaliado,      // 👈 avaliador = próprio funcionário
-              avaliado,
-              modelo,
-              p.id,
-              notas[index],
-              ciclo,
-              (e: Error | null) => {
-                if (e) erro = true
-              }
-            )
-          })
-
-
-          stmt.finalize(() => {
-            database.run(
-              `
-              INSERT INTO avaliacoes_resultado
-              (avaliador, avaliado, modelo, ciclo, desempenho, potencial, nine_box, tipo)
-              VALUES (?, ?, ?, ?, ?, ?, ?, 'AUTO')
-              `,
-              [
-                avaliado,
-                avaliado,
-                modelo,
-                ciclo,
-                1, // ✅ válido
-                1, // ✅ válido
-                1  // ✅ válido
-              ],
-              (e: Error | null) => {
+              e => {
                 if (e) erro = true
                 database.run(erro ? 'ROLLBACK' : 'COMMIT', () => callback(erro))
               }
@@ -340,26 +248,143 @@ const AvaliacaoRepository = {
     )
   },
 
-  /* =========================
-     📜 HISTÓRICO
-  ========================= */
+
+  // - AUTOAVALIAÇÃO
+
+  registrarAutoavaliacao(
+    avaliado: number,
+    modelo: number,
+    cicloId: number,
+    notas: number[],
+    callback: (erro: boolean) => void
+  ) {
+    AvaliacaoRepository.verificarAvaliacaoNoCiclo(
+      avaliado,
+      cicloId,
+      'AUTO',
+      existe => {
+        if (existe) return callback(true)
+
+        const sqlPerguntas = `
+          SELECT id
+          FROM perguntas
+          WHERE modelo = ?
+            AND disponibilidade = 1
+          ORDER BY id ASC
+        `
+
+        database.all(sqlPerguntas, [modelo], (_err, perguntas: PerguntaRow[]) => {
+          if (!perguntas || perguntas.length !== notas.length) {
+            return callback(true)
+          }
+
+          const resultado = calcularResultadoAvaliacao(notas)
+
+          database.serialize(() => {
+            database.run('BEGIN TRANSACTION')
+            let erro = false
+
+            const stmt = database.prepare(`
+              INSERT INTO historico_de_avaliacoes
+              (avaliador, avaliado, modelo, pergunta, nota, ciclo_id, tipo)
+              VALUES (NULL, ?, ?, ?, ?, ?, 'AUTO')
+            `)
+
+            perguntas.forEach((p, index) => {
+              stmt.run(
+                avaliado,
+                modelo,
+                p.id,
+                notas[index],
+                cicloId,
+              (e: Error | null) => {
+                if (e) erro = true
+              }
+              )
+            })
+
+            stmt.finalize(() => {
+              database.run(
+                `
+                INSERT INTO avaliacoes_resultado
+                (avaliador, avaliado, modelo, ciclo_id, desempenho, potencial, nine_box, tipo)
+                VALUES (NULL, ?, ?, ?, ?, ?, ?, 'AUTO')
+                `,
+                [
+                  avaliado,
+                  modelo,
+                  cicloId,
+                  resultado.desempenho,
+                  resultado.potencial,
+                  resultado.nineBox
+                ],
+                e => {
+                  if (e) erro = true
+                  database.run(erro ? 'ROLLBACK' : 'COMMIT', () => callback(erro))
+                }
+              )
+            })
+          })
+        })
+      }
+    )
+  },
+
+
+  // - HISTÓRICO
 
   buscarHistorico(
     avaliadoId: number,
-    callback: (historico: any[]) => void
+    cicloId: number | undefined,
+    callback: (historico: {
+      ciclo_id: number
+      ciclo_nome: string
+      desempenho: number
+      potencial: number
+      nine_box: number
+      tipo: 'GESTOR' | 'AUTO'
+    }[]) => void
   ) {
-    const sql = `
-      SELECT ciclo, desempenho, potencial, nine_box, tipo
-      FROM avaliacoes_resultado
-      WHERE avaliado = ?
-      ORDER BY ciclo DESC
+    let sql = `
+      SELECT
+        ar.ciclo_id,
+        c.nome AS ciclo_nome,
+        ar.desempenho,
+        ar.potencial,
+        ar.nine_box,
+        ar.tipo
+      FROM avaliacoes_resultado ar
+      JOIN ciclos c ON c.id = ar.ciclo_id
+      WHERE ar.avaliado = ?
     `
 
-    database.all(sql, [avaliadoId], (_err, rows) => {
-      callback(rows || [])
-    })
+    const params: (number)[] = [avaliadoId]
+
+    if (cicloId) {
+      sql += ' AND ar.ciclo_id = ?'
+      params.push(cicloId)
+    }
+
+    sql += ' ORDER BY ar.ciclo_id DESC'
+
+    database.all(
+      sql,
+      params,
+      (
+        _err,
+        rows: {
+          ciclo_id: number
+          ciclo_nome: string
+          desempenho: number
+          potencial: number
+          nine_box: number
+          tipo: 'GESTOR' | 'AUTO'
+        }[]
+      ) => {
+        callback(rows || [])
+      }
+    )
   }
 }
-
 
 export default AvaliacaoRepository

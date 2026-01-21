@@ -1,16 +1,11 @@
 import { useEffect, useState } from 'react'
 import {
   listarFuncionarios,
-  listarModelosAvaliacao
+  listarModelosAvaliacao,
+  type Funcionario
 } from '../../services/api'
-import AvaliarFuncionario from './AvaliarFuncionario'
 
-type Funcionario = {
-  id: number
-  nome: string
-  email: string
-  time: string
-}
+import AvaliarFuncionario from './AvaliarFuncionario'
 
 type Modelo = {
   id: number
@@ -19,19 +14,24 @@ type Modelo = {
 
 type Props = {
   onVoltar: () => void
+  avaliadorId: number
   funcionario?: Funcionario
 }
 
 export default function AvaliarFuncionarioFluxo({
   onVoltar,
+  avaliadorId,
   funcionario: funcionarioInicial
 }: Props) {
-  const [funcionarios, setFuncionarios] = useState<Funcionario[]>([])
-  const [modelos, setModelos] = useState<Modelo[]>([])
+  const [funcionarios, setFuncionarios] =
+    useState<Funcionario[]>([])
+
+  const [modelos, setModelos] =
+    useState<Modelo[]>([])
 
   const [funcionarioSelecionado, setFuncionarioSelecionado] =
     useState<Funcionario | null>(
-      funcionarioInicial || null
+      funcionarioInicial ?? null
     )
 
   const [modeloSelecionado, setModeloSelecionado] =
@@ -40,16 +40,21 @@ export default function AvaliarFuncionarioFluxo({
   const [iniciar, setIniciar] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
 
-  /* 🔹 CARREGA FUNCIONÁRIOS E MODELOS */
+  
+  // - CARREGA FUNCIONÁRIOS E MODELOS
+  
   useEffect(() => {
     listarFuncionarios().then(setFuncionarios)
     listarModelosAvaliacao().then(setModelos)
   }, [])
 
-  /* 🔁 INICIAR AVALIAÇÃO */
+  
+  // - INICIAR AVALIAÇÃO
+  
   if (iniciar && funcionarioSelecionado && modeloSelecionado) {
     return (
       <AvaliarFuncionario
+        avaliadorId={avaliadorId}
         funcionario={funcionarioSelecionado}
         modeloId={modeloSelecionado}
         onVoltar={onVoltar}
@@ -57,45 +62,61 @@ export default function AvaliarFuncionarioFluxo({
     )
   }
 
+  
+  // - TELA DE SELEÇÃO
+  
   return (
     <div style={{ padding: 30 }}>
       <button onClick={onVoltar}>Voltar</button>
 
       <h2>Avaliar Funcionário</h2>
 
-      {/* 🔹 FUNCIONÁRIO */}
+      {/* FUNCIONÁRIO */}
       {!funcionarioInicial && (
         <>
           <h3>Funcionário</h3>
+
           <select
-            value={funcionarioSelecionado?.id || ''}
+            value={funcionarioSelecionado?.id ?? ''}
             onChange={e => {
               const id = Number(e.target.value)
               const func = funcionarios.find(
                 f => f.id === id
               )
-              setFuncionarioSelecionado(func || null)
+              setFuncionarioSelecionado(func ?? null)
             }}
           >
-            <option value="">Selecione um funcionário</option>
-            {funcionarios.map(f => (
-              <option key={f.id} value={f.id}>
-                {f.nome} ({f.time})
-              </option>
-            ))}
+            <option value="">
+              Selecione um funcionário
+            </option>
+
+            {funcionarios
+              .filter(f => f.ativo) // ⛔ não avalia inativo
+              .map(f => (
+                <option key={f.id} value={f.id}>
+                  {f.nome}
+                  {f.time_nome
+                    ? ` (${f.time_nome})`
+                    : ''}
+                </option>
+              ))}
           </select>
         </>
       )}
 
-      {/* 🔹 MODELO */}
+      {/* MODELO */}
       <h3>Modelo de Avaliação</h3>
+
       <select
-        value={modeloSelecionado || ''}
+        value={modeloSelecionado ?? ''}
         onChange={e =>
           setModeloSelecionado(Number(e.target.value))
         }
       >
-        <option value="">Selecione um modelo</option>
+        <option value="">
+          Selecione um modelo
+        </option>
+
         {modelos.map(m => (
           <option key={m.id} value={m.id}>
             {m.titulo}
@@ -113,6 +134,7 @@ export default function AvaliarFuncionarioFluxo({
             )
             return
           }
+
           setErro(null)
           setIniciar(true)
         }}

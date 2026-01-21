@@ -1,128 +1,105 @@
 import express, { Request, Response } from 'express'
-import Funcionario from '../models/funcionario'
 import funcionariosRepository from '../repositories/funcionarios_repository'
 import { emailValido } from '../services/validar_email'
 import AvaliacaoRepository from '../repositories/ava_repository'
 
 const funcionariosRouter = express.Router()
 
-/* =========================
-   ➕ CADASTRAR FUNCIONÁRIO
-========================= */
-funcionariosRouter.post(
-  '/funcionarios',
-  (req: Request, res: Response) => {
-    const funcionario: Funcionario = req.body
+//- CADASTRAR FUNCIONÁRIO
+funcionariosRouter.post('/funcionarios', (req: Request, res: Response) => {
+  console.log(req.body)
 
-    // 🔹 Valida campos obrigatórios
-    if (
-      !funcionario.nome ||
-      !funcionario.email ||
-      !funcionario.time ||
-      !funcionario.privilegios
-    ) {
-      return res.status(400).json({
-        erro: 'Campos obrigatórios não informados'
-      })
-    }
+  const { nome, email, cargo, time_id, privilegios } = req.body
 
-    // 🔹 Valida e-mail
-    if (!emailValido(funcionario.email)) {
-      return res.status(400).json({
-        erro: 'E-mail inválido'
-      })
-    }
+  if (!nome || !email || !time_id || !privilegios) {
+    return res.status(400).json({
+      erro: 'Campos obrigatórios não informados'
+    })
+  }
 
-    // 🔹 Verifica se e-mail já existe
-    funcionariosRepository.verificarEmailExistente(
-      funcionario.email,
-      (existe: boolean) => {
-        if (existe) {
-          return res.status(409).json({
-            erro: 'E-mail já cadastrado'
-          })
-        }
+  if (!emailValido(email)) {
+    return res.status(400).json({
+      erro: 'E-mail inválido'
+    })
+  }
 
-        // 🔹 Cria funcionário
-        funcionariosRepository.criar(funcionario, (id) => {
+  funcionariosRepository.verificarEmailExistente(
+    email,
+    existe => {
+      if (existe) {
+        return res.status(409).json({
+          erro: 'E-mail já cadastrado'
+        })
+      }
+
+      funcionariosRepository.criar(
+        {
+          nome,
+          email,
+          cargo: cargo || null,
+          time_id: Number(time_id),
+          privilegios
+        },
+        id => {
           if (!id) {
             return res.status(400).json({
               erro: 'Erro ao cadastrar funcionário'
             })
           }
 
-          return res.status(201).json({ id })
-        })
-      }
-    )
+          res.status(201).json({ id })
+        }
+      )
+    }
+  )
+})
+
+//- LISTAR FUNCIONÁRIOS
+funcionariosRouter.get('/funcionarios', (_req, res) => {
+  funcionariosRepository.listarTodos(funcionarios =>
+    res.json(funcionarios)
+  )
+})
+
+//- BUSCAR FUNCIONÁRIO POR ID
+funcionariosRouter.get('/funcionarios/:id', (req, res) => {
+  const id = Number(req.params.id)
+
+  if (isNaN(id)) {
+    return res.status(400).json({ erro: 'ID inválido' })
   }
-)
 
-/* =========================
-   📄 LISTAR FUNCIONÁRIOS
-========================= */
-funcionariosRouter.get(
-  '/funcionarios',
-  (_req: Request, res: Response) => {
-    funcionariosRepository.lerTodos(funcionarios =>
-      res.json(funcionarios)
-    )
-  }
-)
+  funcionariosRepository.buscarPorId(id, funcionario => {
+    if (!funcionario) {
+      return res.status(404).json({
+        erro: 'Funcionário não encontrado'
+      })
+    }
 
-/* =========================
-   🔍 BUSCAR POR ID
-========================= */
-funcionariosRouter.get(
-  '/funcionarios/:id',
-  (req: Request, res: Response) => {
-    const id = Number(req.params.id)
+    res.json(funcionario)
+  })
+})
 
-    funcionariosRepository.ler(id, funcionario => {
-      if (!funcionario) {
-        return res.status(404).json({
-          erro: 'Funcionário não encontrado'
-        })
-      }
+//- ATUALIZAR FUNCIONÁRIO
+funcionariosRouter.put('/funcionarios/:id', (req, res) => {
+  const id = Number(req.params.id)
+  const { nome, cargo, time_id, privilegios } = req.body
 
-      res.json(funcionario)
+  if (!nome || !time_id || !privilegios) {
+    return res.status(400).json({
+      erro: 'Campos obrigatórios não informados'
     })
   }
-)
 
-/* =========================
-   ✏️ ATUALIZAR
-========================= */
-funcionariosRouter.put(
-  '/funcionarios/:id',
-  (req: Request, res: Response) => {
-    const id = Number(req.params.id)
-
-    funcionariosRepository.atualizar(
-      id,
-      req.body,
-      notFound => {
-        if (notFound) {
-          return res.status(404).json({
-            erro: 'Funcionário não encontrado'
-          })
-        }
-
-        res.status(204).send()
-      }
-    )
-  }
-)
-
-/* =========================
-   🗑️ EXCLUIR
-========================= */
-funcionariosRouter.delete(
-  '/funcionarios/:id',
-  (req: Request, res: Response) => {
-    const id = Number(req.params.id)
-
-    funcionariosRepository.apagar(id, notFound => {
+  funcionariosRepository.atualizar(
+    id,
+    {
+      nome,
+      cargo: cargo || null,
+      time_id: Number(time_id),
+      privilegios
+    },
+    notFound => {
       if (notFound) {
         return res.status(404).json({
           erro: 'Funcionário não encontrado'
@@ -130,46 +107,108 @@ funcionariosRouter.delete(
       }
 
       res.status(204).send()
-    })
-  }
-)
-/* ======================================================
-   📌 CONSULTAS DO FUNCIONÁRIO
-====================================================== */
-
-// 🔹 Histórico de avaliações
-funcionariosRouter.get('/funcionarios/:id/historico', (req, res) => {
-  const avaliadoId = Number(req.params.id)
-
-  if (isNaN(avaliadoId)) {
-    return res.status(400).json({ erro: 'ID inválido' })
-  }
-
-  AvaliacaoRepository.buscarHistorico(avaliadoId, historico => {
-    res.json(historico)
-  })
-})
-
-// 🔹 Último modelo usado pelo funcionário
-funcionariosRouter.get('/funcionarios/:id/ultimo-modelo', (req, res) => {
-  const funcionarioId = Number(req.params.id)
-
-  if (isNaN(funcionarioId)) {
-    return res.status(400).json({ erro: 'ID inválido' })
-  }
-
-  AvaliacaoRepository.buscarUltimoModeloDoFuncionario(
-    funcionarioId,
-    modeloId => {
-      if (!modeloId) {
-        return res.status(404).json({
-          erro: 'Funcionário ainda não foi avaliado'
-        })
-      }
-
-      res.json({ modeloId })
     }
   )
 })
+
+//- RESETAR SENHA
+funcionariosRouter.post(
+  '/funcionarios/:id/reset-senha',
+  (req, res) => {
+    const id = Number(req.params.id)
+
+    funcionariosRepository.resetarSenha(id, sucesso => {
+      if (!sucesso) {
+        return res.status(400).json({
+          erro: 'Não foi possível resetar a senha'
+        })
+      }
+
+      res.json({ sucesso: true })
+    })
+  }
+)
+
+//- DESATIVAR FUNCIONÁRIO
+funcionariosRouter.post(
+  '/funcionarios/:id/desativar',
+  (req, res) => {
+    const id = Number(req.params.id)
+
+    funcionariosRepository.desativar(id, sucesso => {
+      if (!sucesso) {
+        return res.status(400).json({
+          erro: 'Não foi possível desativar o funcionário'
+        })
+      }
+
+      res.json({ sucesso: true })
+    })
+  }
+)
+
+//- REATIVAR FUNCIONÁRIO
+funcionariosRouter.post(
+  '/funcionarios/:id/reativar',
+  (req, res) => {
+    const id = Number(req.params.id)
+
+    funcionariosRepository.reativar(id, sucesso => {
+      if (!sucesso) {
+        return res.status(400).json({
+          erro: 'Não foi possível reativar o funcionário'
+        })
+      }
+
+      res.json({ sucesso: true })
+    })
+  }
+)
+
+//- HISTÓRICO DE AVALIAÇÕES
+funcionariosRouter.get(
+  '/funcionarios/:id/historico',
+  (req, res) => {
+    const id = Number(req.params.id)
+    const cicloId = req.query.cicloId
+      ? Number(req.query.cicloId)
+      : undefined
+
+    if (isNaN(id)) {
+      return res.status(400).json({ erro: 'ID inválido' })
+    }
+
+    AvaliacaoRepository.buscarHistorico(
+      id,
+      cicloId,
+      historico => res.json(historico)
+    )
+  }
+)
+
+//- ÚLTIMO MODELO USADO
+funcionariosRouter.get(
+  '/funcionarios/:id/ultimo-modelo',
+  (req, res) => {
+    const id = Number(req.params.id)
+
+    if (isNaN(id)) {
+      return res.status(400).json({ erro: 'ID inválido' })
+    }
+
+    AvaliacaoRepository.buscarUltimoModeloDoFuncionario(
+      id,
+      modeloId => {
+        if (!modeloId) {
+          return res.status(404).json({
+            erro: 'Funcionário ainda não foi avaliado'
+          })
+        }
+
+        res.json({ modeloId })
+      }
+    )
+  }
+)
 
 export default funcionariosRouter

@@ -2,10 +2,13 @@ import { useEffect, useState } from 'react'
 import Login from './pages/auth/Login'
 import DashboardGestor from './pages/gestor/DashboardGestor'
 import DashboardFuncionario from './pages/funcionario/DashboardFuncionario'
+import DashboardAdmin from './pages/admin/DashboardAdmin'
+import './App.css'
 
-type Perfil = 'GESTOR' | 'FUNCIONARIO'
+// - TIPOS
+type Perfil = 'ADMIN' | 'GESTOR' | 'FUNCIONARIO'
 
-type Usuario = {
+export type Usuario = {
   id: number
   nome: string
   email: string
@@ -15,53 +18,71 @@ type Usuario = {
 function App() {
   const [usuario, setUsuario] = useState<Usuario | null>(null)
 
-  // 🔁 CARREGA USUÁRIO SALVO
+  // - CARREGA USUÁRIO DO LOCALSTORAGE
   useEffect(() => {
     const salvo = localStorage.getItem('usuario')
-    if (salvo) {
-      setUsuario(JSON.parse(salvo))
+    if (!salvo) return
+
+    try {
+      const usuarioSalvo: Usuario = JSON.parse(salvo)
+
+      if (
+        typeof usuarioSalvo.id !== 'number' ||
+        !usuarioSalvo.email ||
+        !usuarioSalvo.privilegios
+      ) {
+        throw new Error()
+      }
+
+      setUsuario(usuarioSalvo)
+    } catch {
+      localStorage.removeItem('usuario')
+      setUsuario(null)
     }
   }, [])
 
+  // - LOGIN
   function handleLogin(user: Usuario) {
     localStorage.setItem('usuario', JSON.stringify(user))
     setUsuario(user)
   }
 
+  // - LOGOUT
   function handleLogout() {
     localStorage.removeItem('usuario')
     setUsuario(null)
   }
 
-  // 🔐 NÃO LOGADO
+  // - NÃO AUTENTICADO
   if (!usuario) {
     return <Login onLogin={handleLogin} />
   }
 
-  const perfil = usuario.privilegios.toUpperCase() as Perfil
-
-  // 👔 GESTOR
-  if (perfil === 'GESTOR') {
+  // - ADMIN
+  if (usuario.privilegios === 'ADMIN') {
     return (
-      <DashboardGestor onLogout={handleLogout} />
-    )
-  }
-
-  // 👷 FUNCIONÁRIO
-  if (perfil === 'FUNCIONARIO') {
-    return (
-      <DashboardFuncionario
-        funcionario={usuario}
+      <DashboardAdmin
         onLogout={handleLogout}
       />
     )
   }
 
-  // 🚫 FALLBACK
+  // - GESTOR
+  if (usuario.privilegios === 'GESTOR') {
+    return (
+      <DashboardGestor
+        usuario={usuario}
+        onLogout={handleLogout}
+      />
+    )
+  }
+
+  // - FUNCIONÁRIO
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Perfil inválido</h2>
-    </div>
+    <DashboardFuncionario
+      funcionario={usuario}
+      onLogout={handleLogout}
+    />
   )
 }
 

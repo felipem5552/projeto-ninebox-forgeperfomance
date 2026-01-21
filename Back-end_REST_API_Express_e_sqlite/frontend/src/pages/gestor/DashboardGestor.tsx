@@ -1,78 +1,99 @@
 import { useState } from 'react'
 import ModelosAvaliacao from './ModelosAvaliacao'
 import FuncionariosGestor from './FuncionariosGestor'
-import AvaliarFuncionarioFluxo from './AvaliarFuncionarioFluxo'
 import RelatoriosGestor from './RelatoriosGestor'
-
+import type { Usuario } from '../../App'
 
 type Tela =
   | 'HOME'
   | 'MODELOS'
   | 'FUNCIONARIOS'
-  | 'AVALIAR'
   | 'RELATORIOS'
 
- type Props = {
+type Props = {
+  usuario: Usuario
   onLogout: () => void
 }
 
-export default function DashboardGestor({ onLogout }: Props) {
+export default function DashboardGestor({ usuario, onLogout }: Props) {
   const [tela, setTela] = useState<Tela>('HOME')
 
-  function voltarHome() {
-    setTela('HOME')
-  }
+  const voltarHome = () => setTela('HOME')
 
-  /* 🔁 TELAS */
+  // =====================================================
+  // - TELAS FILHAS
+  // =====================================================
+
   if (tela === 'MODELOS') {
     return <ModelosAvaliacao onVoltar={voltarHome} />
   }
 
   if (tela === 'FUNCIONARIOS') {
-    return <FuncionariosGestor onVoltar={voltarHome} />
-  }
-
-  if (tela === 'AVALIAR') {
-    return <AvaliarFuncionarioFluxo onVoltar={voltarHome} />
+    return (
+      <FuncionariosGestor
+        avaliadorId={usuario.id}
+        onVoltar={voltarHome}
+      />
+    )
   }
 
   if (tela === 'RELATORIOS') {
     return <RelatoriosGestor onVoltar={voltarHome} />
   }
 
-  /* 🏠 HOME DO GESTOR */
+  // - HOME GESTOR 
   return (
-    <div style={{ padding: 30 }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-        <h1>Bem-vindo ao Sistema do Gestor!</h1>
+    <div className="page">
+      <div className="page-content">
+        <div className="dashboard">
+          <h1 className="dashboard-title">🎯 Painel do Gestor</h1>
 
-        <button
-          onClick={onLogout}
-          style={{ margin: 70, display: 'flex' }}
-        >
-          Sair
-        </button>
-      </div>
-      <p>Selecione uma opção para continuar:</p>
+          <p className="dashboard-subtitle">
+            Avaliação e acompanhamento de desempenho
+          </p>
 
-      <div style={{ marginTop: 30, display: 'flex', gap: 15 }}>
-        <button onClick={() => setTela('MODELOS')}>
-          Modelos de Avaliação
-        </button>
+          <div className="dashboard-divider" />
 
-        <button onClick={() => setTela('FUNCIONARIOS')}>
-          Funcionários
-        </button>
+          <div className="dashboard-menu">
+            <button
+              type="button"
+              className="dashboard-item"
+              onClick={() => setTela('FUNCIONARIOS')}
+            >
+              👥 Funcionários
+              <small>Visualização da equipe e avaliação</small>
+            </button>
 
-        <button onClick={() => setTela('AVALIAR')}>
-          Avaliar Funcionário
-        </button>
+            <button
+              type="button"
+              className="dashboard-item"
+              onClick={() => setTela('MODELOS')}
+            >
+              📋 Modelos de Avaliação
+              <small>Consulta dos modelos disponíveis</small>
+            </button>
 
-        <button onClick={() => setTela('RELATORIOS')}>
-          Relatórios
-        </button>
+            <button
+              type="button"
+              className="dashboard-item"
+              onClick={() => setTela('RELATORIOS')}
+            >
+              📊 Relatórios
+              <small>Resultados e histórico de avaliações</small>
+            </button>
+
+            <div className="dashboard-divider" />
+
+            <button
+              type="button"
+              className="dashboard-logout"
+              onClick={onLogout}
+            >
+              🚪 Sair do sistema
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )
 }
-

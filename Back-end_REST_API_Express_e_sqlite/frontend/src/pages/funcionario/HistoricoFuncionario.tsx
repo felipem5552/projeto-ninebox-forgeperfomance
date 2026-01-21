@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react'
 import NineBox from './NineBox'
 
 type Historico = {
-  ciclo: string
+  ciclo_id: number
+  ciclo_nome: string
   desempenho: number
   potencial: number
   nine_box: number
+  tipo: 'GESTOR' | 'AUTO'
 }
 
 type Props = {
@@ -16,17 +18,25 @@ type Props = {
   onVoltar: () => void
 }
 
-export default function HistoricoFuncionario({ funcionario, onVoltar }: Props) {
+export default function HistoricoFuncionario({
+  funcionario,
+  onVoltar
+}: Props) {
   const [historico, setHistorico] = useState<Historico[]>([])
 
   useEffect(() => {
-    fetch(`http://localhost:4000/api/funcionarios/${funcionario.id}/historico`)
+    fetch(
+      `http://localhost:4000/api/funcionarios/${funcionario.id}/historico`
+    )
       .then(res => res.json())
       .then(data => setHistorico(data))
   }, [funcionario.id])
 
+  //- Última avaliação
   const ultimaAvaliacao =
-    historico.length > 0 ? historico[historico.length - 1] : null
+    historico.length > 0
+      ? historico[0]
+      : null
 
   return (
     <div style={{ padding: 20 }}>
@@ -39,6 +49,10 @@ export default function HistoricoFuncionario({ funcionario, onVoltar }: Props) {
       {ultimaAvaliacao && (
         <>
           <h3>Posição Atual na Nine Box</h3>
+          <p>
+            <strong>Ciclo:</strong>{' '}
+            {ultimaAvaliacao.ciclo_nome}
+          </p>
 
           <NineBox
             desempenho={ultimaAvaliacao.desempenho}
@@ -54,15 +68,17 @@ export default function HistoricoFuncionario({ funcionario, onVoltar }: Props) {
           <thead>
             <tr>
               <th>Ciclo</th>
+              <th>Tipo</th>
               <th>Desempenho</th>
               <th>Potencial</th>
               <th>Nine Box</th>
             </tr>
           </thead>
           <tbody>
-            {historico.map((h, index) => (
-              <tr key={index}>
-                <td>{h.ciclo}</td>
+            {historico.map(h => (
+              <tr key={`${h.ciclo_id}-${h.tipo}`}>
+                <td>{h.ciclo_nome}</td>
+                <td>{h.tipo}</td>
                 <td>{h.desempenho}</td>
                 <td>{h.potencial}</td>
                 <td>{h.nine_box}</td>

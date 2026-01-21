@@ -1,110 +1,162 @@
 import { useEffect, useState } from 'react'
 import {
   listarModelosAvaliacao,
+  verificarUsoModelo
 } from '../../services/api'
-import CriarModeloAvaliacao from './CriarModeloAvaliacao'
-import EditarModeloAvaliacao from './EditarModeloAvaliacao'
+import CriarModeloAvaliacao from '../gestor/CriarModeloAvaliacao'
+import EditarModeloAvaliacao from '../gestor/EditarModeloAvaliacao'
+
+type Tela = 'LISTA' | 'CRIAR' | 'EDITAR'
 
 type Modelo = {
   id: number
   titulo: string
 }
 
+type ModeloComUso = Modelo & {
+  usado: boolean
+}
+
 type Props = {
   onVoltar: () => void
 }
 
-export default function ModelosAvaliacao({ onVoltar }: Props) {
-  const [modelos, setModelos] = useState<Modelo[]>([])
+export default function ListaModelosAvaliacao({
+  onVoltar
+}: Props) {
+  // - ESTADOS
+  const [tela, setTela] = useState<Tela>('LISTA')
+  const [modelos, setModelos] = useState<ModeloComUso[]>([])
+  const [modeloEdicao, setModeloEdicao] =
+    useState<Modelo | null>(null)
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
 
-  const [criando, setCriando] = useState(false)
-  const [modeloSelecionado, setModeloSelecionado] =
-    useState<Modelo | null>(null)
-
-  useEffect(() => {
-    carregarModelos()
-  }, [])
-
-  async function carregarModelos() {
-    setErro(null)
-    setLoading(true)
-
+  // - CARREGAR MODELOS
+  async function carregar() {
     try {
-      const data: Modelo[] = await listarModelosAvaliacao()
-      setModelos(data)
+      setErro(null)
+      setLoading(true)
+
+      const lista: Modelo[] =
+        await listarModelosAvaliacao()
+
+      const modelosComUso: ModeloComUso[] =
+        await Promise.all(
+          lista.map(async m => {
+            const uso = await verificarUsoModelo(m.id)
+            return {
+              ...m,
+              usado: uso.total > 0
+            }
+          })
+        )
+
+      setModelos(modelosComUso)
     } catch {
-      setErro('Erro ao carregar modelos de avaliação')
+      setErro('Erro ao carregar modelos')
     } finally {
       setLoading(false)
     }
   }
 
-  /* 🔁 CRIAR MODELO */
-  if (criando) {
+  useEffect(() => {
+    if (tela === 'LISTA') {
+      carregar()
+    }
+  }, [tela])
+
+  
+  // - TELAS SECUNDÁRIAS
+  
+
+  if (tela === 'CRIAR') {
     return (
       <CriarModeloAvaliacao
+        onVoltar={() => setTela('LISTA')}
+      />
+    )
+  }
+
+  if (tela === 'EDITAR' && modeloEdicao) {
+    return (
+      <EditarModeloAvaliacao
+        modelo={modeloEdicao}
         onVoltar={() => {
-          setCriando(false)
-          carregarModelos()
+          setModeloEdicao(null)
+          setTela('LISTA')
         }}
       />
     )
   }
 
-  if (modeloSelecionado) {
-  return (
-    <EditarModeloAvaliacao
-      modelo={modeloSelecionado}
-      onVoltar={() => {
-    setModeloSelecionado(null)
-    carregarModelos()
-    }}
-    />
-  )
-}
+  
+  // - LISTA
+  
 
   return (
-    <div style={{ padding: 30 }}>
-      <button onClick={onVoltar}>Voltar</button>
+    <div className="page">
+      <div className="page-content">
+        <h2>📋 Modelos de Avaliação</h2>
 
-      <h2>Modelos de Avaliação</h2>
+        {loading && <p>Carregando modelos...</p>}
 
-      <button
-        onClick={() => setCriando(true)}
-        style={{ marginBottom: 20 }}
-      >
-        + Criar Novo Modelo
-      </button>
+        {erro && <p className="error-text">{erro}</p>}
 
-      {loading && <p>Carregando modelos...</p>}
+        {!loading && modelos.length === 0 && (
+          <p>Nenhum modelo cadastrado.</p>
+        )}
 
-      {erro && <p style={{ color: 'red' }}>{erro}</p>}
+        {!loading && modelos.length > 0 && (
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Título</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
 
-      {!loading && modelos.length === 0 && (
-        <p>Nenhum modelo encontrado.</p>
-      )}
+            <tbody>
+              {modelos.map(m => (
+                <tr key={m.id}>
+                  <td>{m.titulo}</td>
 
-      {modelos.map(m => (
-        <div
-          key={m.id}
-          style={{
-            border: '1px solid #444',
-            padding: 15,
-            marginBottom: 10
-          }}
-        >
-          <strong>{m.titulo}</strong>
+                  <td>
+                    {m.usado ? (
+                      <span className="status inativo">🔒 Usado</span>
+                    ) : (
+                      <span className="status ativo">🆓 Livre</span>
+                    )}
+                  </td>
 
-          <div style={{ marginTop: 10 }}>
-            <button onClick={() => setModeloSelecionado(m)}>
-              Ver Modelo
-            </button>
-          </div>
+                  <td>
+                    <button
+                      onClick={() => {
+                        setModeloEdicao(m)
+                        setTela('EDITAR')
+                      }}
+                    >
+                      ✏️ Editar
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        {/* AÇÕES */}
+        <div className="actions-row">
+          <button onClick={() => setTela('CRIAR')}>
+            ➕ Novo Modelo
+          </button>
+          
+          <button onClick={onVoltar}>
+            ⬅️ Voltar
+          </button>
         </div>
-      ))}
+      </div>
     </div>
   )
 }
-

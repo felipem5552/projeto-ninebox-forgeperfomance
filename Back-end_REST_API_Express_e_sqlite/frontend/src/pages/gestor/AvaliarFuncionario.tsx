@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react'
 import {
   buscarModeloAvaliacao,
-  avaliarFuncionario
+  avaliarFuncionario,
+  buscarCicloAtivo,
+  type Funcionario,
+  type Ciclo
 } from '../../services/api'
 
 type Pergunta = {
@@ -11,10 +14,8 @@ type Pergunta = {
 }
 
 type Props = {
-  funcionario: {
-    id: number
-    nome: string
-  }
+  funcionario: Funcionario
+  avaliadorId: number
   modeloId: number
   onVoltar: () => void
 }
@@ -29,102 +30,135 @@ const ESCALA = [
 
 export default function AvaliarFuncionario({
   funcionario,
+  avaliadorId,
   modeloId,
   onVoltar
 }: Props) {
   const [perguntas, setPerguntas] = useState<Pergunta[]>([])
   const [notas, setNotas] = useState<number[]>([])
+  const [cicloAtivo, setCicloAtivo] = useState<Ciclo | null>(null)
+
   const [erro, setErro] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
+  const [enviando, setEnviando] = useState(false)
+  const [sucesso, setSucesso] = useState(false)
+
+
+  // CICLO ATIVO
+
+  useEffect(() => {
+    buscarCicloAtivo()
+      .then(setCicloAtivo)
+      .catch(() =>
+        setErro('Erro ao identificar o ciclo ativo')
+      )
+  }, [])
+
+
+  // PERGUNTAS
 
   useEffect(() => {
     setLoading(true)
+
     buscarModeloAvaliacao(modeloId)
       .then((data: Pergunta[]) => {
         setPerguntas(data)
         setNotas(new Array(data.length).fill(0))
       })
-      .catch(() => setErro('Erro ao carregar perguntas'))
+      .catch(() =>
+        setErro(
+          'Erro ao carregar perguntas do modelo de avaliação'
+        )
+      )
       .finally(() => setLoading(false))
   }, [modeloId])
 
+
+  // ALTERAR NOTA
+
   function alterarNota(index: number, valor: number) {
-    const copia = [...notas]
-    copia[index] = valor
-    setNotas(copia)
+    setNotas(prev => {
+      const copia = [...prev]
+      copia[index] = valor
+      return copia
+    })
   }
 
+
+  // ENVIAR
+
   async function enviarAvaliacao() {
+    if (enviando) return
+
     setErro(null)
+
+    if (!cicloAtivo) {
+      setErro('Nenhum ciclo ativo encontrado')
+      return
+    }
 
     if (notas.some(n => n === 0)) {
       setErro('Responda todas as perguntas antes de enviar')
       return
     }
 
+    setEnviando(true)
+
     try {
-      const response = await avaliarFuncionario({
-        Avaliador: 1, // depois vem do login
+      await avaliarFuncionario({
+        Avaliador: avaliadorId,
         Avaliado: funcionario.id,
         Modelo: modeloId,
-        Ciclo: '2025',
+        Ciclo: cicloAtivo.id,
         Notas: notas
       })
 
-      if (response?.erro) {
-        setErro(response.erro)
-        return
-      }
-
-      alert('Avaliação enviada com sucesso')
-      onVoltar()
-    } catch {
-      setErro('Erro ao enviar avaliação')
+      setSucesso(true)
+    } catch (e) {
+      setErro(
+        e instanceof Error
+          ? e.message
+          : 'Erro ao enviar avaliação'
+      )
+    } finally {
+      setEnviando(false)
     }
   }
 
-  if (loading) {
-    return <p>Carregando perguntas...</p>
-  }
 
-  function renderPerguntas(eixo: 'DESEMPENHO' | 'POTENCIAL') {
+  // RENDER PERGUNTAS
+
+  function renderPerguntas(
+    eixo: 'DESEMPENHO' | 'POTENCIAL'
+  ) {
     return perguntas
       .map((p, index) => ({ ...p, index }))
       .filter(p => p.eixo === eixo)
       .map(p => (
-        <div
-          key={p.id}
-          style={{
-            marginBottom: 20,
-            padding: 10,
-            borderBottom: '1px solid #444'
-          }}
-        >
-          <strong>
+        <div key={p.id} className="question-box">
+          <div className="question-title">
             {p.index + 1}. {p.enunciado}
-          </strong>
+          </div>
 
-          <div style={{ marginTop: 8 }}>
+          <div className="options">
             {ESCALA.map(opcao => (
               <label
                 key={opcao.valor}
-                style={{
-                  display: 'block',
-                  marginBottom: 6,
-                  cursor: 'pointer'
-                }}
+                className="option-row"
               >
                 <input
                   type="radio"
                   name={`pergunta-${p.index}`}
-                  value={opcao.valor}
                   checked={notas[p.index] === opcao.valor}
+                  disabled={enviando}
                   onChange={() =>
                     alterarNota(p.index, opcao.valor)
                   }
-                  style={{ marginRight: 6 }}
                 />
-                {opcao.valor} – {opcao.label}
+
+                <span>
+                  {opcao.valor} – {opcao.label}
+                </span>
               </label>
             ))}
           </div>
@@ -132,33 +166,108 @@ export default function AvaliarFuncionario({
       ))
   }
 
+
+  // LOADING
+
+  if (loading) {
+    return (
+      <div className="page page-avaliacao">
+        <div className="page-content">
+          <p>Carregando perguntas...</p>
+        </div>
+      </div>
+    )
+  }
+
+
+  // SUCESSO
+
+  if (sucesso) {
+    return (
+      <div className="page page-avaliacao">
+        <div className="page-content">
+          <h3 className="success-text">
+            ✅ Avaliação enviada com sucesso!
+          </h3>
+
+          <p>
+            Avaliação registrada no ciclo{' '}
+            <strong>{cicloAtivo?.nome}</strong>
+          </p>
+
+          <button
+            className="btn-secondary"
+            onClick={onVoltar}
+          >
+            ⬅️ Voltar
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+
+  // INTERFACE
+
   return (
-    <div style={{ padding: 30 }}>
-      <h2>Avaliar: {funcionario.nome}</h2>
+    <div className="page page-avaliacao">
+      <div className="page-content">
+        <div className="dashboard">
+          {/* HEADER */}
+          <div className="page-header">
+            <h2>📝 Avaliar: {funcionario.nome}</h2>
 
-      <h3>Desempenho</h3>
-      {renderPerguntas('DESEMPENHO')}
+          </div>
+            <button
+              className="btn-secondary"
+              onClick={onVoltar}
+              disabled={enviando}
+            >
+              ⬅️ Voltar
+            </button>
 
-      <h3>Potencial</h3>
-      {renderPerguntas('POTENCIAL')}
+          <p className="dashboard-subtitle">
+            Ciclo ativo:{' '}
+            <strong>
+              {cicloAtivo?.nome ?? '—'}
+            </strong>
+          </p>
 
-      {erro && (
-        <p style={{ color: 'red', marginTop: 10 }}>
-          {erro}
-        </p>
-      )}
+          <div className="dashboard-divider" />
 
-      <div style={{ marginTop: 20 }}>
-        <button onClick={enviarAvaliacao}>
-          Enviar Avaliação
-        </button>
+          <h3>🎯 Desempenho</h3>
+          {renderPerguntas('DESEMPENHO')}
 
-        <button
-          onClick={onVoltar}
-          style={{ marginLeft: 10 }}
-        >
-          Voltar
-        </button>
+          <div className="dashboard-divider" />
+
+          <h3>🚀 Potencial</h3>
+          {renderPerguntas('POTENCIAL')}
+
+          {erro && (
+            <p className="error-text">{erro}</p>
+          )}
+
+          <div className="dashboard-divider" />
+
+          <div className="actions-row">
+            <button
+              onClick={enviarAvaliacao}
+              disabled={enviando}
+            >
+              💾 {enviando
+                ? 'Enviando...'
+                : 'Enviar Avaliação'}
+            </button>
+
+            <button
+              className="btn-secondary"
+              onClick={onVoltar}
+              disabled={enviando}
+            >
+              ⬅️ Voltar
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )

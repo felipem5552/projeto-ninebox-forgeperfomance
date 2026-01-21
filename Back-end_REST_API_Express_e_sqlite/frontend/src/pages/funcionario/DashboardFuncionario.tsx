@@ -31,14 +31,21 @@ export default function DashboardFuncionario({
     useState<Resultado | null>(null)
   const [loading, setLoading] = useState(true)
 
+  // - CONTROLE DE RELOAD
+  const [reload, setReload] = useState(0)
+
+  // - VOLTA PARA HOME E FORCA RELOAD
   function voltarHome() {
     setTela('HOME')
+    setReload(r => r + 1)
   }
 
-  /* =========================
-     🔹 CARREGA RESULTADOS
-  ========================= */
+ 
+    //- CARREGA RESULTADOS
+
   useEffect(() => {
+    setLoading(true)
+
     fetch(
       `http://localhost:4000/api/funcionarios/${funcionario.id}/historico`
     )
@@ -55,11 +62,11 @@ export default function DashboardFuncionario({
         setResultadoAuto(auto || null)
       })
       .finally(() => setLoading(false))
-  }, [funcionario.id])
+  }, [funcionario.id, reload])
 
-  /* =========================
-     🔁 TELAS SECUNDÁRIAS
-  ========================= */
+  
+    // - TELAS SECUNDARIAS
+
   if (tela === 'AUTOAVALIACAO') {
     return (
       <Autoavaliacao
@@ -78,12 +85,12 @@ export default function DashboardFuncionario({
     )
   }
 
-  /* =========================
-     🏠 HOME
-  ========================= */
+
+    // - HOME
+
   return (
     <div style={{ padding: 30 }}>
-      <h1>Olá, {funcionario.nome} </h1>
+      <h1>Olá, {funcionario.nome}</h1>
       <p>Bem-vindo(a) à sua área de avaliações.</p>
 
       <hr style={{ margin: '20px 0' }} />
@@ -92,7 +99,7 @@ export default function DashboardFuncionario({
 
       {!loading && (
         <>
-          {/* 🔹 AVALIAÇÃO DO GESTOR */}
+          {/* - AVALIACAO DO GESTOR */}
           <h2>Avaliação do Gestor</h2>
 
           {resultadoGestor ? (
@@ -109,7 +116,7 @@ export default function DashboardFuncionario({
 
           <hr style={{ margin: '20px 0' }} />
 
-          {/* 🔹 AUTOAVALIAÇÃO */}
+          {/* - AUTOAVALIACAO */}
           <h2>Autoavaliação</h2>
 
           {resultadoAuto ? (
@@ -126,7 +133,7 @@ export default function DashboardFuncionario({
 
           <hr style={{ margin: '20px 0' }} />
 
-          {/* 🔹 AÇÕES */}
+          {/* - ACOES */}
           <h2>Ações</h2>
 
           <div
@@ -142,7 +149,7 @@ export default function DashboardFuncionario({
                   setTela('AUTOAVALIACAO')
                 }
               >
-                ✍️ Fazer Autoavaliação
+                Fazer Autoavaliação
               </button>
             )}
 

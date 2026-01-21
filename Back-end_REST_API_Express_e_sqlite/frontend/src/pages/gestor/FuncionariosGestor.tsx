@@ -1,42 +1,51 @@
 import { useEffect, useState } from 'react'
 import {
   listarFuncionarios,
-  buscarHistoricoFuncionario
+  buscarHistoricoFuncionario,
+  buscarCicloAtivo
 } from '../../services/api'
 
-import AvaliarFuncionarioFluxo from './AvaliarFuncionarioFluxo'
 import HistoricoFuncionario from '../funcionario/HistoricoFuncionario'
-import CadastrarFuncionario from './CadastrarFuncionario'
+//import CadastrarFuncionario from './CadastrarFuncionario'
+import AvaliarFuncionarioFluxo from './AvaliarFuncionarioFluxo'
 
-type Funcionario = {
-  id: number
-  nome: string
-  email: string
-  cargo: string
-  time: string
-}
+import type { Funcionario, Ciclo } from '../../services/api'
 
 type Props = {
   onVoltar: () => void
+  avaliadorId: number
 }
 
 type TelaInterna =
   | 'LISTA'
-  | 'AVALIAR'
   | 'HISTORICO'
-  | 'CADASTRAR'
+//  | 'CADASTRAR'
+  | 'AVALIAR'
 
-const CICLO_ATUAL = '2025'
-
-export default function FuncionariosGestor({ onVoltar }: Props) {
+export default function FuncionariosGestor({
+  onVoltar,
+  avaliadorId
+}: Props) {
   const [funcionarios, setFuncionarios] = useState<Funcionario[]>([])
   const [avaliados, setAvaliados] = useState<number[]>([])
+  const [cicloAtivo, setCicloAtivo] = useState<Ciclo | null>(null)
 
   const [tela, setTela] = useState<TelaInterna>('LISTA')
   const [funcionarioSelecionado, setFuncionarioSelecionado] =
     useState<Funcionario | null>(null)
 
-  /* 🔹 CARREGA FUNCIONÁRIOS */
+  // FILTROS
+  const [busca, setBusca] = useState('')
+  const [filtroTime, setFiltroTime] = useState('')
+  const [filtroStatus, setFiltroStatus] =
+    useState<'TODOS' | 'PENDENTE' | 'AVALIADO'>('TODOS')
+
+  // CICLO ATIVO
+  useEffect(() => {
+    buscarCicloAtivo().then(setCicloAtivo)
+  }, [])
+
+  // FUNCIONÁRIOS
   async function carregarFuncionarios() {
     const data = await listarFuncionarios()
     setFuncionarios(data)
@@ -46,20 +55,20 @@ export default function FuncionariosGestor({ onVoltar }: Props) {
     carregarFuncionarios()
   }, [])
 
-  /* 🔹 VERIFICA QUEM JÁ FOI AVALIADO */
+  // AVALIADOS NO CICLO
   useEffect(() => {
     async function verificarAvaliacoes() {
+      if (!cicloAtivo) return
+
       const idsAvaliados: number[] = []
 
       for (const func of funcionarios) {
-        const historico =
-          await buscarHistoricoFuncionario(func.id)
+        const historico = await buscarHistoricoFuncionario(
+          func.id,
+          cicloAtivo.id
+        )
 
-        if (
-          historico.some(
-            (h: any) => h.ciclo === CICLO_ATUAL
-          )
-        ) {
+        if (historico.length > 0) {
           idsAvaliados.push(func.id)
         }
       }
@@ -67,39 +76,17 @@ export default function FuncionariosGestor({ onVoltar }: Props) {
       setAvaliados(idsAvaliados)
     }
 
-    if (funcionarios.length > 0) {
+    if (funcionarios.length && cicloAtivo) {
       verificarAvaliacoes()
     }
-  }, [funcionarios])
+  }, [funcionarios, cicloAtivo])
 
   function voltarLista() {
     setTela('LISTA')
     setFuncionarioSelecionado(null)
   }
 
-  /* 🔁 TELAS INTERNAS */
-  if (tela === 'CADASTRAR') {
-    return (
-      <CadastrarFuncionario
-        onVoltar={async () => {
-          await carregarFuncionarios()
-          setTela('LISTA')
-        }}
-      />
-    )
-  }
-
-  if (tela === 'AVALIAR' && funcionarioSelecionado) {
-    return (
-      <AvaliarFuncionarioFluxo
-        funcionario={funcionarioSelecionado}
-        onVoltar={async () => {
-          await carregarFuncionarios()
-          voltarLista()
-        }}
-      />
-    )
-  }
+  // TELAS INTERNAS
 
   if (tela === 'HISTORICO' && funcionarioSelecionado) {
     return (
@@ -110,84 +97,179 @@ export default function FuncionariosGestor({ onVoltar }: Props) {
     )
   }
 
-  /* 🧭 LISTA DE FUNCIONÁRIOS */
+  if (tela === 'AVALIAR' && funcionarioSelecionado && cicloAtivo) {
+    return (
+      <AvaliarFuncionarioFluxo
+        avaliadorId={avaliadorId}
+        funcionario={funcionarioSelecionado}
+        onVoltar={voltarLista}
+      />
+    )
+  }
+
+  // LISTA FILTRADA
+  const funcionariosFiltrados = funcionarios.filter(func => {
+    const jaAvaliado = avaliados.includes(func.id)
+
+    if (
+      busca &&
+      !func.nome.toLowerCase().includes(busca.toLowerCase())
+    ) {
+      return false
+    }
+
+    if (filtroTime && func.time_nome !== filtroTime) {
+      return false
+    }
+
+    if (filtroStatus === 'AVALIADO' && !jaAvaliado) {
+      return false
+    }
+
+    if (filtroStatus === 'PENDENTE' && jaAvaliado) {
+      return false
+    }
+
+    return true
+  })
+
+  const timesDisponiveis = Array.from(
+    new Set(funcionarios.map(f => f.time_nome).filter(Boolean))
+  )
+
+  // RENDER
   return (
-    <div style={{ padding: 30 }}>
-      <button onClick={onVoltar}>Voltar</button>
+    <div className="page">
+      <div className="page-content">
+        <div className="dashboard">
+          {/* HEADER */}
+          <div className="page-header">
+            <h2>👥 Funcionários</h2>
+          </div>
 
-      <h2>Funcionários</h2>
+          <p className="dashboard-subtitle">
+            Ciclo ativo:{' '}
+            <strong>
+              {cicloAtivo ? cicloAtivo.nome : 'Nenhum ciclo ativo'}
+            </strong>
+          </p>
 
-      <p>Ciclo atual: {CICLO_ATUAL}</p>
+          {/* FILTROS */}
+          <div className="filters-row">
+            <input
+              placeholder="🔎 Buscar por nome"
+              value={busca}
+              onChange={e => setBusca(e.target.value)}
+            />
 
-      <button
-        onClick={() => setTela('CADASTRAR')}
-        style={{ marginBottom: 15 }}
-      >
-        ➕ Cadastrar Funcionário
-      </button>
+            <select
+              value={filtroTime}
+              onChange={e => setFiltroTime(e.target.value)}
+            >
+              <option value="">Todos os times</option>
+              {timesDisponiveis.map(time => (
+                <option key={time} value={time}>
+                  {time}
+                </option>
+              ))}
+            </select>
 
-      <table border={1} cellPadding={8}>
-        <thead>
-          <tr>
-            <th>Nome</th>
-            <th>Time</th>
-            <th>Status</th>
-            <th>Ações</th>
-          </tr>
-        </thead>
+            <select
+              value={filtroStatus}
+              onChange={e =>
+                setFiltroStatus(
+                  e.target.value as
+                    | 'TODOS'
+                    | 'PENDENTE'
+                    | 'AVALIADO'
+                )
+              }
+            >
+              <option value="TODOS">Todos</option>
+              <option value="PENDENTE">Pendentes</option>
+              <option value="AVALIADO">Avaliados</option>
+            </select>
+            <button  onClick={onVoltar}>
+              ⬅️ Voltar
+            </button>
+          </div>
 
-        <tbody>
-          {funcionarios.map(func => {
-            const jaAvaliado =
-              avaliados.includes(func.id)
+          <div className="dashboard-divider" />
 
-            return (
-              <tr
-                key={func.id}
-                style={{
-                  backgroundColor: jaAvaliado
-                    ? '#1e3a2f'
-                    : '#3a1e1e'
-                }}
-              >
-                <td>{func.nome}</td>
-                <td>{func.time}</td>
-                <td>
-                  {jaAvaliado
-                    ? '✅ Avaliado'
-                    : '⏳ Pendente'}
-                </td>
-                <td>
-                  <button
-                    onClick={() => {
-                      setFuncionarioSelecionado(func)
-                      setTela('HISTORICO')
-                    }}
-                  >
-                    Histórico
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      setFuncionarioSelecionado(func)
-                      setTela('AVALIAR')
-                    }}
-                    disabled={jaAvaliado}
-                    style={{ marginLeft: 8 }}
-                  >
-                    Avaliar
-                  </button>
-                </td>
+          {/* TABELA */}
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Nome</th>
+                <th>Time</th>
+                <th>Status</th>
+                <th>Ações</th>
               </tr>
-            )
-          })}
-        </tbody>
-      </table>
+            </thead>
 
-      <p style={{ marginTop: 10 }}>
-        ⛔ Funcionários já avaliados no ciclo não
-        podem ser avaliados novamente.
-      </p>
+            <tbody>
+              {funcionariosFiltrados.map(func => {
+                const jaAvaliado = avaliados.includes(func.id)
+                const inativo = !func.ativo
+
+                return (
+                  <tr
+                    key={func.id}
+                    style={{ opacity: inativo ? 0.5 : 1 }}
+                  >
+                    <td>{func.nome}</td>
+                    <td>{func.time_nome || '-'}</td>
+
+                    <td>
+                      {inativo ? (
+                        <span className="status inativo">
+                          ⛔ Inativo
+                        </span>
+                      ) : jaAvaliado ? (
+                        <span className="status ativo">
+                          ✅ Avaliado
+                        </span>
+                      ) : (
+                        <span className="status pendente">
+                          ⏳ Pendente
+                        </span>
+                      )}
+                    </td>
+
+                    <td className="actions-row">
+                      <button
+                        onClick={() => {
+                          setFuncionarioSelecionado(func)
+                          setTela('HISTORICO')
+                        }}
+                      >
+                        📜 Histórico
+                      </button>
+
+                      <button
+                        disabled={inativo || jaAvaliado}
+                        onClick={() => {
+                          setFuncionarioSelecionado(func)
+                          setTela('AVALIAR')
+                        }}
+                      >
+                        📝 Avaliar
+                      </button>
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+
+          <div className="dashboard-divider" />
+
+          <p className="hint-text">
+            ⛔ Funcionários inativos ou já avaliados no ciclo
+            não podem ser avaliados novamente.
+          </p>
+        </div>
+      </div>
     </div>
   )
 }

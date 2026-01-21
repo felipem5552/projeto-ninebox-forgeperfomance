@@ -1,103 +1,255 @@
-// Define os métodos de requisição HTTP para funcionários.
-
-import Funcionario from '../models/funcionario'
 import database from './database'
-const funcionarioRepository = {
 
-    // Método de requisição HTTP POST.
-    /**
-     * @param { Funcionario } funcionario - Cria funcionário usando o tipo Funcionário.
-     * @param { void } callback - Função callback que busca por ID.
-     */
-    criar: (funcionario: Funcionario, callback: (id?: number) => void) => {
-        const sql = 'INSERT INTO Funcionarios (nome, cargo, privilegios, time, email) VALUES (?, ?, ?, ?, ?)'
-        const params = [funcionario.nome, funcionario.cargo, funcionario.privilegios, funcionario.time, funcionario.email]
-        database.run(sql, params, function(_err) {
-            callback(this?.lastID)
-        })
-    },
-    
-    // Método de requisição HTTP GET geral.
-    /**
-     * 
-     * @param { void } callback - Função callback que busca por funcionários.
-     */
-    lerTodos: (callback: (funcionarios: Funcionario[]) => void) => {
-        const sql = 'SELECT * FROM Funcionarios'
 
-        // Parâmetro para busca de funcionários (Tipo any visto a não especificação).
-        const params: any[] = []
+//- TIPO DE RETORNO DO BANCO
 
-        database.all(sql, params, (_err, rows: Funcionario[]) => callback(rows))
-    },
-
-    // Método de requisição HTTP GET por meio de ID.
-    /**
-     * 
-     * @param { number } id - Busca funcionário por ID. 
-     * @param { void } callback - Função callback que aguarda a busca por ID e retorna funcionário.
-     */
-    ler: (id: number, callback: (funcionario?: Funcionario) => void) => {
-    const sql = 'SELECT * FROM Funcionarios WHERE id = ?'
-
-    // Parâmetro para busca de funcionários via ID.
-    const params = [id]
-
-    database.get(sql, params, (_err, row: Funcionario) => callback(row))
-    },
-
-    // Método de requisição HTTP PUT.
-    /**
-     * 
-     * @param { number } id - Busca funcionário por ID.
-     * @param { Funcionario } funcionario - Funcionário (corpo).
-     * @param { void } callback - Função callback que define se o usuário foi encontrado ou não (True / False), deve aguardar banco de dados.
-     */
-    atualizar: (id: number, funcionario: Funcionario, callback: (notFound: boolean) => void) => {
-    const sql = 'UPDATE Funcionarios SET nome = ?, cargo = ?, privilegios = ?, time = ?, email = ? WHERE id = ?'
-
-    // Parâmetro de modelo (Como deve ser o corpo JSON).
-    const params = [funcionario.nome, funcionario.cargo, funcionario.privilegios, funcionario.time, funcionario.email, id]
-    database.run(sql, params, function(_err) {
-        callback(this.changes === 0)
-    })
-    },
-
-    // Método de requisição HTTP DELETE.
-    /**
-     * @param { number } id - Use-o para definir qual funcionário deve ser apagado via ID.
-     * @param { void } callback - Função callback que define se o usuário foi encontrado ou não (True / False), deve aguardar banco de dados.
-     */
-    apagar: (id: number, callback: (notFound: boolean) => void) => {
-    const sql = 'DELETE FROM Funcionarios WHERE id = ?'
-
-    // Busca o funcionário por ID.
-    const params = [id]
-
-    database.run(sql, params, function(_err) {
-        callback(this.changes === 0)
-    })
-    },
-    buscarPorEmail(email: string, callback: (funcionario: any | null) => void) {
-    const sql = 'SELECT * FROM funcionarios WHERE email = ?'
-
-    database.get(sql, [email], (_err, row) => {
-        callback(row || null)
-    })
-    },
-
-    // Verifica se existem funcionários sem e-mails cadastrados.
-    verificarEmailExistente(
-    email: string,
-    callback: (existe: boolean) => void
-    ) {
-    const sql = `SELECT 1 FROM funcionarios WHERE email = ? LIMIT 1`
-
-    database.get(sql, [email], (_err, row) => {
-        callback(!!row)
-    })
-    }
+export type FuncionarioRow = {
+  id: number
+  nome: string
+  email: string
+  cargo?: string | null
+  time_id: number
+  time_nome?: string
+  privilegios: 'FUNCIONARIO' | 'GESTOR' | 'ADMIN'
+  senha?: string | null
+  ativo: number
+  data_de_ingresso: string
 }
 
-export default funcionarioRepository
-// Disponibiliza o tipo para uso em outros arquivos.
+
+//- REPOSITÓRIO DE FUNCIONÁRIOS
+
+const funcionariosRepository = {
+
+  
+  //- CRIAR FUNCIONÁRIO
+  
+  criar(
+    funcionario: {
+      nome: string
+      email: string
+      cargo?: string | null
+      time_id: number
+      privilegios: 'FUNCIONARIO' | 'GESTOR' | 'ADMIN'
+    },
+    callback: (id?: number) => void
+  ) {
+    const sql = `
+      INSERT INTO funcionarios
+      (nome, email, cargo, time_id, privilegios, ativo)
+      VALUES (?, ?, ?, ?, ?, 1)
+    `
+
+    const params = [
+      funcionario.nome,
+      funcionario.email,
+      funcionario.cargo ?? null,
+      funcionario.time_id,
+      funcionario.privilegios
+    ]
+
+    database.run(sql, params, function (err) {
+      if (err) return callback(undefined)
+      callback(this.lastID)
+    })
+  },
+
+  
+  //- LISTAR TODOS (ADMIN / GESTOR)
+  
+  listarTodos(
+    callback: (funcionarios: FuncionarioRow[]) => void
+  ) {
+    const sql = `
+      SELECT
+        f.id,
+        f.nome,
+        f.email,
+        f.cargo,
+        f.time_id,
+        t.nome AS time_nome,
+        f.privilegios,
+        f.ativo,
+        f.data_de_ingresso
+      FROM funcionarios f
+      JOIN times t ON t.id = f.time_id
+      ORDER BY f.nome ASC
+    `
+
+    database.all(
+      sql,
+      [],
+      (_err, rows: FuncionarioRow[]) => {
+        callback(rows || [])
+      }
+    )
+  },
+
+  
+  //- 🔍 BUSCAR POR ID
+  
+  buscarPorId(
+    id: number,
+    callback: (funcionario: FuncionarioRow | null) => void
+  ) {
+    const sql = `
+      SELECT
+        f.id,
+        f.nome,
+        f.email,
+        f.cargo,
+        f.time_id,
+        t.nome AS time_nome,
+        f.privilegios,
+        f.ativo,
+        f.data_de_ingresso
+      FROM funcionarios f
+      JOIN times t ON t.id = f.time_id
+      WHERE f.id = ?
+    `
+
+    database.get(
+      sql,
+      [id],
+      (_err, row: FuncionarioRow | undefined) => {
+        callback(row || null)
+      }
+    )
+  },
+
+  
+  //- BUSCAR POR EMAIL (LOGIN)
+  
+  buscarPorEmail(
+    email: string,
+    callback: (funcionario: FuncionarioRow | null) => void
+  ) {
+    const sql = `
+      SELECT *
+      FROM funcionarios
+      WHERE email = ?
+    `
+
+    database.get(
+      sql,
+      [email],
+      (_err, row: FuncionarioRow | undefined) => {
+        callback(row || null)
+      }
+    )
+  },
+
+  
+  //- VERIFICAR EMAIL EXISTENTE
+  
+  verificarEmailExistente(
+    email: string,
+    callback: (existe: boolean) => void
+  ) {
+    const sql = `
+      SELECT 1
+      FROM funcionarios
+      WHERE email = ?
+      LIMIT 1
+    `
+
+    database.get(sql, [email], (_err, row) => {
+      callback(!!row)
+    })
+  },
+
+  
+  //- ATUALIZAR FUNCIONÁRIO
+  
+  atualizar(
+    id: number,
+    dados: {
+      nome: string
+      cargo?: string | null
+      time_id: number
+      privilegios: 'FUNCIONARIO' | 'GESTOR' | 'ADMIN'
+      ativo?: boolean
+    },
+    callback: (notFound: boolean) => void
+  ) {
+    const sql = `
+      UPDATE funcionarios
+      SET
+        nome = ?,
+        cargo = ?,
+        time_id = ?,
+        privilegios = ?,
+        ativo = COALESCE(?, ativo)
+      WHERE id = ?
+    `
+
+    const params = [
+      dados.nome,
+      dados.cargo ?? null,
+      dados.time_id,
+      dados.privilegios,
+      dados.ativo === undefined ? null : (dados.ativo ? 1 : 0),
+      id
+    ]
+
+    database.run(sql, params, function (_err) {
+      callback(this.changes === 0)
+    })
+  },
+
+  
+  //- RESETAR SENHA
+  
+  resetarSenha(
+    id: number,
+    callback: (sucesso: boolean) => void
+  ) {
+    const sql = `
+      UPDATE funcionarios
+      SET senha = NULL
+      WHERE id = ?
+    `
+
+    database.run(sql, [id], function (_err) {
+      callback(this.changes > 0)
+    })
+  },
+
+  
+  //- DESATIVAR FUNCIONÁRIO
+  
+  desativar(
+    id: number,
+    callback: (sucesso: boolean) => void
+  ) {
+    const sql = `
+      UPDATE funcionarios
+      SET ativo = 0
+      WHERE id = ?
+    `
+
+    database.run(sql, [id], function (_err) {
+      callback(this.changes > 0)
+    })
+  },
+
+  
+  //- REATIVAR FUNCIONÁRIO
+  
+  reativar(
+    id: number,
+    callback: (sucesso: boolean) => void
+  ) {
+    const sql = `
+      UPDATE funcionarios
+      SET ativo = 1
+      WHERE id = ?
+    `
+
+    database.run(sql, [id], function (_err) {
+      callback(this.changes > 0)
+    })
+  }
+}
+
+export default funcionariosRepository

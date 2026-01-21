@@ -20,10 +20,13 @@ type Props = {
   onVoltar: () => void
 }
 
-export default function EditarModeloAvaliacao({ modelo, onVoltar }: Props) {
-  /* =========================
-     🔹 ESTADOS
-  ========================= */
+export default function EditarModeloAvaliacao({
+  modelo,
+  onVoltar
+}: Props) {
+  
+  // - ESTADOS
+  
   const [titulo, setTitulo] = useState(modelo.titulo)
   const [perguntas, setPerguntas] = useState<Pergunta[]>([])
   const [usos, setUsos] = useState(0)
@@ -32,11 +35,17 @@ export default function EditarModeloAvaliacao({ modelo, onVoltar }: Props) {
   const [enunciado, setEnunciado] = useState('')
   const [eixo, setEixo] =
     useState<'DESEMPENHO' | 'POTENCIAL'>('DESEMPENHO')
-  const [erro, setErro] = useState<string | null>(null)
 
-  /* =========================
-     🔹 CARREGAMENTO INICIAL
-  ========================= */
+  const [erro, setErro] = useState<string | null>(null)
+  const [mensagem, setMensagem] = useState<string | null>(null)
+
+  const [salvandoTitulo, setSalvandoTitulo] = useState(false)
+  const [salvandoPergunta, setSalvandoPergunta] = useState(false)
+  const [adicionando, setAdicionando] = useState(false)
+
+  
+  // - CARREGAMENTO INICIAL
+  
   useEffect(() => {
     buscarModeloAvaliacao(modelo.id).then(setPerguntas)
 
@@ -49,192 +58,294 @@ export default function EditarModeloAvaliacao({ modelo, onVoltar }: Props) {
   const qtdDes = perguntas.filter(p => p.eixo === 'DESEMPENHO').length
   const qtdPot = perguntas.filter(p => p.eixo === 'POTENCIAL').length
 
-  /* =========================
-     🔹 SALVAR TÍTULO
-  ========================= */
+  
+  // - SALVAR TITULO
+  
   async function salvarTitulo() {
-    if (bloqueado) return
+    if (bloqueado || salvandoTitulo) return
 
-    await fetch(`http://localhost:4000/api/avaliacoes/${modelo.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ titulo })
-    })
+    setErro(null)
+    setMensagem(null)
+    setSalvandoTitulo(true)
 
-    alert('Título atualizado com sucesso')
+    try {
+      const res = await fetch(
+        `http://localhost:4000/api/avaliacoes/${modelo.id}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ titulo })
+        }
+      )
+
+      if (!res.ok) {
+        throw new Error()
+      }
+
+      setMensagem('Título atualizado com sucesso')
+    } catch {
+      setErro('Erro ao salvar título')
+    } finally {
+      setSalvandoTitulo(false)
+    }
   }
 
-  /* =========================
-     🔹 ATUALIZAR PERGUNTA
-  ========================= */
+  
+  // - ATUALIZAR PERGUNTA
+  
   async function atualizarPergunta(pergunta: Pergunta) {
-    if (bloqueado) return
+    if (bloqueado || salvandoPergunta) return
 
-    await fetch(`http://localhost:4000/api/pergunta/${pergunta.id}`, {
-      method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(pergunta)
-    })
+    setErro(null)
+    setMensagem(null)
+    setSalvandoPergunta(true)
 
-    alert('Pergunta atualizada')
+    try {
+      const res = await fetch(
+        `http://localhost:4000/api/pergunta/${pergunta.id}`,
+        {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(pergunta)
+        }
+      )
+
+      if (!res.ok) {
+        throw new Error()
+      }
+
+      setMensagem('Pergunta atualizada com sucesso')
+    } catch {
+      setErro('Erro ao atualizar pergunta')
+    } finally {
+      setSalvandoPergunta(false)
+    }
   }
 
-  /* =========================
-     🔹 EXCLUIR PERGUNTA
-  ========================= */
+  
+  // - EXCLUIR PERGUNTA
+  
   async function excluirPergunta(id: number) {
     if (bloqueado) return
     if (!confirm('Deseja realmente excluir esta pergunta?')) return
 
-    await fetch(`http://localhost:4000/api/perguntas/${id}`, {
-      method: 'DELETE'
-    })
-
-    setPerguntas(perguntas.filter(p => p.id !== id))
-  }
-
-  /* =========================
-     🔹 ADICIONAR PERGUNTA
-  ========================= */
-  async function adicionar() {
     setErro(null)
+    setMensagem(null)
 
-    if (bloqueado) return
-    if (!enunciado) return setErro('Informe o enunciado da pergunta')
+    try {
+      const res = await fetch(
+        `http://localhost:4000/api/perguntas/${id}`,
+        { method: 'DELETE' }
+      )
 
-    if (eixo === 'DESEMPENHO' && qtdDes >= 5)
-      return setErro('Máximo de 5 perguntas de desempenho')
+      if (!res.ok) {
+        throw new Error()
+      }
 
-    if (eixo === 'POTENCIAL' && qtdPot >= 5)
-      return setErro('Máximo de 5 perguntas de potencial')
-
-    await adicionarPergunta(modelo.id, {
-      enunciado,
-      eixo,
-      peso: 1
-    })
-
-    setPerguntas([
-      ...perguntas,
-      { id: Date.now(), enunciado, eixo, peso: 1 }
-    ])
-
-    setEnunciado('')
+      setPerguntas(perguntas.filter(p => p.id !== id))
+      setMensagem('Pergunta excluída')
+    } catch {
+      setErro('Erro ao excluir pergunta')
+    }
   }
 
-  /* =========================
-     🔹 RENDER
-  ========================= */
+  
+  // - ADICIONAR PERGUNTA
+  
+  async function adicionar() {
+    if (bloqueado || adicionando) return
+
+    setErro(null)
+    setMensagem(null)
+
+    if (!enunciado.trim()) {
+      setErro('Informe o enunciado da pergunta')
+      return
+    }
+
+    if (eixo === 'DESEMPENHO' && qtdDes >= 5) {
+      setErro('Máximo de 5 perguntas de desempenho')
+      return
+    }
+
+    if (eixo === 'POTENCIAL' && qtdPot >= 5) {
+      setErro('Máximo de 5 perguntas de potencial')
+      return
+    }
+
+    try {
+      setAdicionando(true)
+
+      const id = await adicionarPergunta(modelo.id, {
+        enunciado: enunciado.trim(),
+        eixo,
+        peso: 1
+      })
+
+      if (!id) {
+        throw new Error()
+      }
+
+      setPerguntas(prev => [
+        ...prev,
+        { id, enunciado: enunciado.trim(), eixo, peso: 1 }
+      ])
+
+      setEnunciado('')
+      setMensagem('Pergunta adicionada')
+    } catch {
+      setErro('Erro ao adicionar pergunta')
+    } finally {
+      setAdicionando(false)
+    }
+  }
+
+  // - RENDER
+
   return (
-    <div style={{ padding: 30 }}>
-      <button onClick={onVoltar}>Voltar</button>
+    <div className="page">
+      <div className="page-content">
+        <div className="dashboard">
 
-      <h2>Editar Modelo de Avaliação</h2>
+          {/* HEADER */}
+          <div className="page-header">
+            <h2>✏️ Editar Modelo de Avaliação</h2>
+          </div>
 
-      <p>
-        📊 Avaliações usando este modelo:{' '}
-        <strong>{usos}</strong>
-      </p>
+          <p className="dashboard-subtitle">
+            Avaliações usando este modelo: <strong>{usos}</strong>
+          </p>
 
-      {bloqueado && (
-        <p style={{ color: 'orange' }}>
-          🔒 Este modelo já foi utilizado e não pode ser editado
-        </p>
-      )}
+          {bloqueado && (
+            <p className="error-text" style={{ color: 'orange' }}>
+              🔒 Este modelo já foi utilizado e não pode ser editado
+            </p>
+          )}
 
-      {/* 🔹 TÍTULO */}
-      <h3>Título do Modelo</h3>
+          <div className="dashboard-divider" />
 
-      <input
-        value={titulo}
-        disabled={bloqueado}
-        onChange={e => setTitulo(e.target.value)}
-        style={{ width: '100%', marginBottom: 8 }}
-      />
+          {/* TÍTULO DO MODELO */}
+          <h3>📌 Título do Modelo</h3>
 
-      <button
-        onClick={salvarTitulo}
-        disabled={bloqueado}
-      >
-        Salvar Título
-      </button>
-
-      {/* 🔹 PERGUNTAS */}
-      <h3 style={{ marginTop: 25 }}>Perguntas</h3>
-
-      <p>
-        Desempenho: {qtdDes}/5 | Potencial: {qtdPot}/5
-      </p>
-
-      {perguntas.map(p => (
-        <div key={p.id} style={{ marginBottom: 10 }}>
           <input
-            value={p.enunciado}
-            disabled={bloqueado}
-            onChange={e =>
-              setPerguntas(perguntas.map(x =>
-                x.id === p.id
-                  ? { ...x, enunciado: e.target.value }
-                  : x
-              ))
-            }
-            style={{ width: '70%' }}
+            value={titulo}
+            disabled={bloqueado || salvandoTitulo}
+            onChange={e => setTitulo(e.target.value)}
           />
 
-          <button
-            onClick={() => atualizarPergunta(p)}
-            disabled={bloqueado}
-            style={{ marginLeft: 5 }}
-          >
-            Salvar
-          </button>
+          <div className="actions-row">
+            <button
+              onClick={salvarTitulo}
+              disabled={bloqueado || salvandoTitulo}
+            >
+              💾 {salvandoTitulo ? 'Salvando...' : 'Salvar Título'}
+            </button>
 
-          <button
-            onClick={() => excluirPergunta(p.id)}
-            disabled={bloqueado}
-            style={{ marginLeft: 5 }}
-          >
-            Excluir
-          </button>
+            <button
+              className="btn-secondary"
+              onClick={onVoltar}
+            >
+              ⬅️ Voltar
+            </button>
+          </div>
+
+          <div className="dashboard-divider" />
+
+          {/* PERGUNTAS */}
+          <h3>📝 Perguntas</h3>
+
+          <p className="dashboard-subtitle">
+            <strong>Desempenho:</strong> {qtdDes}/5 &nbsp;|&nbsp;
+            <strong>Potencial:</strong> {qtdPot}/5
+          </p>
+
+          {perguntas.map(p => (
+            <div key={p.id} className="question-box">
+              <textarea
+                value={p.enunciado}
+                disabled={bloqueado || salvandoPergunta}
+                onChange={e =>
+                  setPerguntas(perguntas.map(x =>
+                    x.id === p.id
+                      ? { ...x, enunciado: e.target.value }
+                      : x
+                  ))
+                }
+                rows={2}
+              />
+
+              <div className="actions-row">
+                <button
+                  onClick={() => atualizarPergunta(p)}
+                  disabled={bloqueado || salvandoPergunta}
+                >
+                  💾 Salvar
+                </button>
+
+                <button
+                  className="btn-secondary"
+                  onClick={() => excluirPergunta(p.id)}
+                  disabled={bloqueado}
+                >
+                  🗑️ Excluir
+                </button>
+              </div>
+            </div>
+          ))}
+
+          {/* ADICIONAR PERGUNTA */}
+          {!bloqueado && (
+            <>
+              <div className="dashboard-divider" />
+
+              <h3>➕ Adicionar Pergunta</h3>
+
+              <textarea
+                placeholder="Enunciado da pergunta"
+                value={enunciado}
+                onChange={e => setEnunciado(e.target.value)}
+                disabled={adicionando}
+                rows={3}
+              />
+
+              <select
+                value={eixo}
+                onChange={e =>
+                  setEixo(
+                    e.target.value === 'POTENCIAL'
+                      ? 'POTENCIAL'
+                      : 'DESEMPENHO'
+                  )
+                }
+                disabled={adicionando}
+              >
+                <option value="DESEMPENHO">Desempenho</option>
+                <option value="POTENCIAL">Potencial</option>
+              </select>
+
+              <div className="actions-row">
+                <button
+                  onClick={adicionar}
+                  disabled={adicionando}
+                >
+                  ➕ {adicionando ? 'Adicionando...' : 'Adicionar'}
+                </button>
+              </div>
+            </>
+          )}
+
+          {/* FEEDBACK */}
+          {mensagem && (
+            <p className="success-text">{mensagem}</p>
+          )}
+
+          {erro && (
+            <p className="error-text">{erro}</p>
+          )}
+
         </div>
-      ))}
-
-      {/* 🔹 ADICIONAR PERGUNTA */}
-      {!bloqueado && (
-        <>
-          <h4 style={{ marginTop: 25 }}>
-            Adicionar Pergunta
-          </h4>
-
-          <input
-            placeholder="Enunciado"
-            value={enunciado}
-            onChange={e => setEnunciado(e.target.value)}
-          />
-
-          <select
-            value={eixo}
-            onChange={e => setEixo(e.target.value as any)}
-            style={{ marginLeft: 5 }}
-          >
-            <option value="DESEMPENHO">Desempenho</option>
-            <option value="POTENCIAL">Potencial</option>
-          </select>
-
-          <button
-            onClick={adicionar}
-            style={{ marginLeft: 5 }}
-          >
-            Adicionar
-          </button>
-        </>
-      )}
-
-      {erro && (
-        <p style={{ color: 'red', marginTop: 10 }}>
-          {erro}
-        </p>
-      )}
+      </div>
     </div>
   )
+
 }
