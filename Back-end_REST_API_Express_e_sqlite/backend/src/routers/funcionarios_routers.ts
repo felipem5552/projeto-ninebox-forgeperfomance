@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express'
 import funcionariosRepository from '../repositories/funcionarios_repository'
 import { emailValido } from '../services/validar_email'
 import AvaliacaoRepository from '../repositories/ava_repository'
+import { enviarConviteAvaliacao } from '../services/email_service'
 
 const funcionariosRouter = express.Router()
 

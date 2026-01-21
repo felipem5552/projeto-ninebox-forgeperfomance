@@ -3,7 +3,7 @@
   line-height: 1.5;
   font-weight: 400;
 
-  color-scheme: light dark;
+  color-scheme: dark; 
   color: rgba(255, 255, 255, 0.87);
   background-color: #242424;
 
@@ -26,7 +26,8 @@ body {
   margin: 0;
   min-width: 320px;
   min-height: 100vh;
-  background-color: #121212;
+  background-color: #242424; 
+
 }
 
 h1 {
@@ -42,6 +43,7 @@ button {
   font-weight: 500;
   font-family: inherit;
   background-color: #1a1a1a;
+  color: #ffffff;
   cursor: pointer;
   transition: border-color 0.25s;
 }
@@ -53,12 +55,3 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
-html,
-body {
-  width: 100%;
-  min-height: 100%;
-  margin: 0;
-
-  background-color: #121212 !important;
-  color: #ffffff !important;
-}
