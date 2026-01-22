@@ -50,7 +50,7 @@ const SQL_CREATE: string[] = [
   CREATE TABLE IF NOT EXISTS ciclos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     nome TEXT NOT NULL,
-    ativo INTEGER DEFAULT 0,
+    ativo INTEGER DEFAULT 1,
     data_inicio TEXT,
     data_fim TEXT
   )
@@ -60,7 +60,8 @@ const SQL_CREATE: string[] = [
   `
   CREATE TABLE IF NOT EXISTS avaliacoes (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    titulo TEXT NOT NULL
+    titulo TEXT NOT NULL,
+    ativo INTEGER DEFAULT 1
   )
   `,
 

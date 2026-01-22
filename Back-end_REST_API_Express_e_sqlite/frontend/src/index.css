@@ -55,3 +55,25 @@ button:focus-visible {
   outline: 4px auto -webkit-focus-ring-color;
 }
 
+.dashboard-section-title {
+  margin-top: 20px;
+  margin-bottom: 10px;
+  font-size: 1.1rem;
+}
+
+.dashboard-warning {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  background: rgba(255, 193, 7, 0.12); /* amarelo suave */
+  border: 1px solid rgba(255, 193, 7, 0.35);
+
+  color: #f5f5f5;
+
+  padding: 14px 16px;
+  border-radius: 10px;
+
+  font-size: 0.95rem;
+  line-height: 1.4;
+}

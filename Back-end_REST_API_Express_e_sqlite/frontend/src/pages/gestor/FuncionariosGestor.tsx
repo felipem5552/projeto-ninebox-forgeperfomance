@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react'
 import {
   listarFuncionarios,
   buscarHistoricoFuncionario,
-  buscarCicloAtivo
+  buscarCicloAtivo,
+  podeAvaliar
 } from '../../services/api'
 
 import HistoricoFuncionario from '../funcionario/HistoricoFuncionario'
-//import CadastrarFuncionario from './CadastrarFuncionario'
 import AvaliarFuncionarioFluxo from './AvaliarFuncionarioFluxo'
 
 import type { Funcionario, Ciclo } from '../../services/api'
@@ -19,7 +19,6 @@ type Props = {
 type TelaInterna =
   | 'LISTA'
   | 'HISTORICO'
-//  | 'CADASTRAR'
   | 'AVALIAR'
 
 export default function FuncionariosGestor({
@@ -29,6 +28,11 @@ export default function FuncionariosGestor({
   const [funcionarios, setFuncionarios] = useState<Funcionario[]>([])
   const [avaliados, setAvaliados] = useState<number[]>([])
   const [cicloAtivo, setCicloAtivo] = useState<Ciclo | null>(null)
+
+  const [podeAvaliarCiclo, setPodeAvaliarCiclo] = useState<{
+    pode: boolean
+    motivo?: string
+  } | null>(null)
 
   const [tela, setTela] = useState<TelaInterna>('LISTA')
   const [funcionarioSelecionado, setFuncionarioSelecionado] =
@@ -40,22 +44,60 @@ export default function FuncionariosGestor({
   const [filtroStatus, setFiltroStatus] =
     useState<'TODOS' | 'PENDENTE' | 'AVALIADO'>('TODOS')
 
+  // ─────────────────────────────────────────────
   // CICLO ATIVO
+  // ─────────────────────────────────────────────
   useEffect(() => {
     buscarCicloAtivo().then(setCicloAtivo)
   }, [])
 
-  // FUNCIONÁRIOS
+  // ─────────────────────────────────────────────
+  // VERIFICAR SE PODE AVALIAR NO CICLO
+  // ─────────────────────────────────────────────
+  useEffect(() => {
+    async function verificarCiclo() {
+      if (!cicloAtivo) {
+        setPodeAvaliarCiclo({
+          pode: false,
+          motivo: 'Nenhum ciclo ativo'
+        })
+        return
+      }
+
+      try {
+        const res = await podeAvaliar(cicloAtivo.id)
+        setPodeAvaliarCiclo(res)
+      } catch {
+        setPodeAvaliarCiclo({
+          pode: false,
+          motivo: 'Erro ao verificar ciclo'
+        })
+      }
+    }
+
+    verificarCiclo()
+  }, [cicloAtivo])
+
+  // ─────────────────────────────────────────────
+  // FUNCIONÁRIOS (SEM ADMIN)
+  // ─────────────────────────────────────────────
   async function carregarFuncionarios() {
     const data = await listarFuncionarios()
-    setFuncionarios(data)
+
+    const filtrados = data.filter(
+      f => f.privilegios !== 'ADMIN'
+    )
+
+    setFuncionarios(filtrados)
   }
 
   useEffect(() => {
     carregarFuncionarios()
   }, [])
 
+  // ─────────────────────────────────────────────
   // AVALIADOS NO CICLO
+  // ─────────────────────────────────────────────
   useEffect(() => {
     async function verificarAvaliacoes() {
       if (!cicloAtivo) return
@@ -86,7 +128,9 @@ export default function FuncionariosGestor({
     setFuncionarioSelecionado(null)
   }
 
+  // ─────────────────────────────────────────────
   // TELAS INTERNAS
+  // ─────────────────────────────────────────────
 
   if (tela === 'HISTORICO' && funcionarioSelecionado) {
     return (
@@ -103,11 +147,16 @@ export default function FuncionariosGestor({
         avaliadorId={avaliadorId}
         funcionario={funcionarioSelecionado}
         onVoltar={voltarLista}
+        onAtualizar={async () => {
+          await carregarFuncionarios()
+        }}
       />
     )
   }
 
-  // LISTA FILTRADA
+  // ─────────────────────────────────────────────
+  // FILTROS
+  // ─────────────────────────────────────────────
   const funcionariosFiltrados = funcionarios.filter(func => {
     const jaAvaliado = avaliados.includes(func.id)
 
@@ -137,12 +186,13 @@ export default function FuncionariosGestor({
     new Set(funcionarios.map(f => f.time_nome).filter(Boolean))
   )
 
+  // ─────────────────────────────────────────────
   // RENDER
+  // ─────────────────────────────────────────────
   return (
     <div className="page">
       <div className="page-content">
         <div className="dashboard">
-          {/* HEADER */}
           <div className="page-header">
             <h2>👥 Funcionários</h2>
           </div>
@@ -153,6 +203,13 @@ export default function FuncionariosGestor({
               {cicloAtivo ? cicloAtivo.nome : 'Nenhum ciclo ativo'}
             </strong>
           </p>
+
+          {/* BLOQUEIO DO CICLO */}
+          {podeAvaliarCiclo && !podeAvaliarCiclo.pode && (
+            <p className="error-text">
+              ⛔ {podeAvaliarCiclo.motivo}
+            </p>
+          )}
 
           {/* FILTROS */}
           <div className="filters-row">
@@ -189,9 +246,8 @@ export default function FuncionariosGestor({
               <option value="PENDENTE">Pendentes</option>
               <option value="AVALIADO">Avaliados</option>
             </select>
-            <button  onClick={onVoltar}>
-              ⬅️ Voltar
-            </button>
+
+            <button onClick={onVoltar}>⬅️ Voltar</button>
           </div>
 
           <div className="dashboard-divider" />
@@ -211,6 +267,11 @@ export default function FuncionariosGestor({
               {funcionariosFiltrados.map(func => {
                 const jaAvaliado = avaliados.includes(func.id)
                 const inativo = !func.ativo
+
+                const bloqueado =
+                  inativo ||
+                  jaAvaliado ||
+                  !podeAvaliarCiclo?.pode
 
                 return (
                   <tr
@@ -247,7 +308,7 @@ export default function FuncionariosGestor({
                       </button>
 
                       <button
-                        disabled={inativo || jaAvaliado}
+                        disabled={bloqueado}
                         onClick={() => {
                           setFuncionarioSelecionado(func)
                           setTela('AVALIAR')
@@ -265,8 +326,8 @@ export default function FuncionariosGestor({
           <div className="dashboard-divider" />
 
           <p className="hint-text">
-            ⛔ Funcionários inativos ou já avaliados no ciclo
-            não podem ser avaliados novamente.
+            ⛔ Funcionários inativos, já avaliados ou fora do período
+            do ciclo não podem ser avaliados.
           </p>
         </div>
       </div>

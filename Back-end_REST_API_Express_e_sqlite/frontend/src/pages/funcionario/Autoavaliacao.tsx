@@ -15,6 +15,14 @@ type Props = {
   onVoltar: () => void
 }
 
+const ESCALA = [
+  { valor: 1, label: 'Discordo totalmente' },
+  { valor: 2, label: 'Discordo' },
+  { valor: 3, label: 'Neutro' },
+  { valor: 4, label: 'Concordo' },
+  { valor: 5, label: 'Concordo totalmente' }
+]
+
 export default function Autoavaliacao({
   funcionario,
   onVoltar
@@ -27,9 +35,9 @@ export default function Autoavaliacao({
   const [enviando, setEnviando] = useState(false)
   const [sucesso, setSucesso] = useState(false)
 
-
-  // - BUSCA ULTIMO MODELO
-
+  // ─────────────────────────────────────────────
+  // BUSCA ÚLTIMO MODELO
+  // ─────────────────────────────────────────────
   useEffect(() => {
     async function buscarModelo() {
       try {
@@ -43,9 +51,7 @@ export default function Autoavaliacao({
           return
         }
 
-        if (!response.ok) {
-          throw new Error()
-        }
+        if (!response.ok) throw new Error()
 
         const data = await response.json()
 
@@ -65,9 +71,9 @@ export default function Autoavaliacao({
     buscarModelo()
   }, [funcionario.id])
 
-
-  // - CARREGA PERGUNTAS
-
+  // ─────────────────────────────────────────────
+  // CARREGA PERGUNTAS
+  // ─────────────────────────────────────────────
   useEffect(() => {
     if (!modeloId) return
 
@@ -80,18 +86,20 @@ export default function Autoavaliacao({
       .finally(() => setLoading(false))
   }, [modeloId])
 
-
-  // - MARCA NOTA
-
+  // ─────────────────────────────────────────────
+  // MARCAR NOTA
+  // ─────────────────────────────────────────────
   function marcarNota(index: number, valor: number) {
-    const copia = [...notas]
-    copia[index] = valor
-    setNotas(copia)
+    setNotas(prev => {
+      const copia = [...prev]
+      copia[index] = valor
+      return copia
+    })
   }
 
-
-  // - ENVIA AUTOAVALIACAO
-
+  // ─────────────────────────────────────────────
+  // ENVIAR AUTOAVALIAÇÃO
+  // ─────────────────────────────────────────────
   async function enviarAutoavaliacao() {
     if (enviando) return
 
@@ -131,7 +139,6 @@ export default function Autoavaliacao({
         return
       }
 
-      setErro(null)
       setSucesso(true)
     } catch {
       setErro('Erro inesperado ao enviar autoavaliação')
@@ -140,106 +147,157 @@ export default function Autoavaliacao({
     }
   }
 
-
-  // - ESTADO DE SUCESSO
-
+  // ─────────────────────────────────────────────
+  // SUCESSO
+  // ─────────────────────────────────────────────
   if (sucesso) {
     return (
-      <div style={{ padding: 30 }}>
-        <h3 style={{ color: 'green' }}>
-          ✅ Autoavaliação enviada com sucesso!
-        </h3>
+      <div className="page">
+        <div className="page-content">
+          <div className="dashboard dashboard-center">
+            <h2>✅ Autoavaliação enviada</h2>
 
-        <p>
-          Sua autoavaliação foi registrada e já pode ser
-          comparada com a avaliação do gestor.
-        </p>
+            <p className="dashboard-subtitle">
+              Sua autoavaliação foi registrada e poderá ser
+              comparada com a avaliação do gestor.
+            </p>
 
-        <button onClick={onVoltar}>
-          Voltar para o dashboard
-        </button>
-      </div>
-    )
-  }
+            <div className="dashboard-divider" />
 
-
-  // - ESTADOS PADRAO
-
-  if (loading) {
-    return <p>Carregando autoavaliação...</p>
-  }
-
-  if (erro && perguntas.length === 0) {
-    return (
-      <div style={{ padding: 30 }}>
-        <p style={{ color: 'red' }}>{erro}</p>
-        <button onClick={onVoltar}>Voltar</button>
-      </div>
-    )
-  }
-
-  return (
-    <div style={{ padding: 30 }}>
-      <h2>Autoavaliação</h2>
-
-      <p>
-        Responda com sinceridade. Esta avaliação será comparada
-        com a do gestor.
-      </p>
-
-      <hr />
-
-      {perguntas.map((p, i) => (
-        <div key={p.id} style={{ marginBottom: 20 }}>
-          <strong>
-            {i + 1}. {p.enunciado}
-          </strong>
-
-          <div style={{ marginTop: 8 }}>
-            {[
-              'Discordo totalmente',
-              'Discordo',
-              'Neutro',
-              'Concordo',
-              'Concordo totalmente'
-            ].map((label, idx) => {
-              const valor = idx + 1
-              return (
-                <label
-                  key={valor}
-                  style={{ display: 'block', cursor: 'pointer' }}
-                >
-                  <input
-                    type="radio"
-                    name={`pergunta-${i}`}
-                    checked={notas[i] === valor}
-                    disabled={enviando}
-                    onChange={() => marcarNota(i, valor)}
-                  />{' '}
-                  {valor} – {label}
-                </label>
-              )
-            })}
+            <button onClick={onVoltar}>
+              Voltar para o dashboard
+            </button>
           </div>
         </div>
-      ))}
+      </div>
+    )
+  }
 
-      {erro && <p style={{ color: 'red' }}>{erro}</p>}
+  // ─────────────────────────────────────────────
+  // LOADING
+  // ─────────────────────────────────────────────
+  if (loading) {
+    return (
+      <div className="page">
+        <div className="page-content">
+          <div className="dashboard">
+            <p>Carregando autoavaliação...</p>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
-      <button
-        onClick={enviarAutoavaliacao}
-        disabled={enviando}
-      >
-        {enviando ? 'Enviando...' : 'Enviar Autoavaliação'}
-      </button>
+  // ─────────────────────────────────────────────
+  // ERRO SEM PERGUNTAS
+  // ─────────────────────────────────────────────
+  if (erro && perguntas.length === 0) {
+    return (
+      <div className="page">
+        <div className="page-content">
+          <div className="dashboard">
+            <p className="error-text">{erro}</p>
 
-      <button
-        onClick={onVoltar}
-        style={{ marginLeft: 10 }}
-        disabled={enviando}
-      >
-        Voltar
-      </button>
+            <button
+              className="btn-secondary"
+              onClick={onVoltar}
+            >
+              ⬅️ Voltar
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // ─────────────────────────────────────────────
+  // RENDER PRINCIPAL
+  // ─────────────────────────────────────────────
+  return (
+    <div className="page page-avaliacao">
+      <div className="page-content">
+        <div className="dashboard">
+          <div className="page-header">
+            <h2>⭐ Autoavaliação</h2>
+          </div>
+
+          <button
+            className="btn-secondary"
+            onClick={onVoltar}
+            disabled={enviando}
+          >
+            ⬅️ Voltar
+          </button>
+
+          <p className="dashboard-subtitle">
+            Responda com sinceridade. Esta é sua{' '}
+            <strong>autoavaliação</strong> e será comparada
+            com a avaliação do gestor.
+          </p>
+
+          <div className="dashboard-divider" />
+
+          {/* PERGUNTAS — MESMO PADRÃO DO GESTOR */}
+          {perguntas.map((p, index) => (
+            <div key={p.id} className="question-box">
+              <div className="question-title">
+                {index + 1}. {p.enunciado}
+              </div>
+
+              <div className="options">
+                {ESCALA.map(opcao => (
+                  <label
+                    key={opcao.valor}
+                    className="option-row"
+                  >
+                    <input
+                      type="radio"
+                      name={`pergunta-${index}`}
+                      checked={
+                        notas[index] === opcao.valor
+                      }
+                      disabled={enviando}
+                      onChange={() =>
+                        marcarNota(index, opcao.valor)
+                      }
+                    />
+
+                    <span>
+                      {opcao.valor} – {opcao.label}
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          ))}
+
+          {erro && (
+            <p className="error-text">{erro}</p>
+          )}
+
+          <div className="dashboard-divider" />
+
+          <div className="actions-row">
+            <button
+              onClick={enviarAutoavaliacao}
+              disabled={enviando}
+            >
+              💾{' '}
+              {enviando
+                ? 'Enviando...'
+                : 'Enviar Autoavaliação'}
+            </button>
+
+            <button
+              className="btn-secondary"
+              onClick={onVoltar}
+              disabled={enviando}
+            >
+              ⬅️ Voltar
+            </button>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

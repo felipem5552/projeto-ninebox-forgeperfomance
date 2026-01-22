@@ -15,14 +15,17 @@ type Props = {
   onLogout: () => void
 }
 
-export default function DashboardGestor({ usuario, onLogout }: Props) {
+export default function DashboardGestor({
+  usuario,
+  onLogout
+}: Props) {
   const [tela, setTela] = useState<Tela>('HOME')
 
   const voltarHome = () => setTela('HOME')
 
-  // =====================================================
-  // - TELAS FILHAS
-  // =====================================================
+  // =============================
+  // TELAS
+  // =============================
 
   if (tela === 'MODELOS') {
     return <ModelosAvaliacao onVoltar={voltarHome} />
@@ -41,12 +44,16 @@ export default function DashboardGestor({ usuario, onLogout }: Props) {
     return <RelatoriosGestor onVoltar={voltarHome} />
   }
 
-  // - HOME GESTOR 
+  // =============================
+  // HOME
+  // =============================
   return (
     <div className="page">
       <div className="page-content">
         <div className="dashboard">
-          <h1 className="dashboard-title">🎯 Painel do Gestor</h1>
+          <h1 className="dashboard-title">
+            🎯 Painel do Gestor
+          </h1>
 
           <p className="dashboard-subtitle">
             Avaliação e acompanhamento de desempenho
@@ -56,40 +63,36 @@ export default function DashboardGestor({ usuario, onLogout }: Props) {
 
           <div className="dashboard-menu">
             <button
-              type="button"
               className="dashboard-item"
               onClick={() => setTela('FUNCIONARIOS')}
             >
               👥 Funcionários
-              <small>Visualização da equipe e avaliação</small>
+              <small>Equipe e avaliações</small>
             </button>
 
             <button
-              type="button"
               className="dashboard-item"
               onClick={() => setTela('MODELOS')}
             >
               📋 Modelos de Avaliação
-              <small>Consulta dos modelos disponíveis</small>
+              <small>Modelos disponíveis</small>
             </button>
 
             <button
-              type="button"
               className="dashboard-item"
               onClick={() => setTela('RELATORIOS')}
             >
               📊 Relatórios
-              <small>Resultados e histórico de avaliações</small>
+              <small>Times, funcionários e evolução</small>
             </button>
 
             <div className="dashboard-divider" />
 
             <button
-              type="button"
               className="dashboard-logout"
               onClick={onLogout}
             >
-              🚪 Sair do sistema
+              🚪 Sair
             </button>
           </div>
         </div>

@@ -5,12 +5,26 @@ import Autoavaliacao from './Autoavaliacao'
 
 type Tela = 'HOME' | 'AUTOAVALIACAO' | 'HISTORICO'
 
-type Resultado = {
+type AvaliacaoResumo = {
   desempenho: number
   potencial: number
   nine_box: number
-  tipo: 'GESTOR' | 'AUTO'
 }
+type Avaliacao = {
+  desempenho: number
+  potencial: number
+  nine_box: number
+}
+
+type ResumoCicloAtivo = {
+  ciclo: {
+    id: number
+    nome: string
+  }
+  gestor: Avaliacao | null
+  auto: Avaliacao | null
+}
+
 
 type Props = {
   funcionario: {
@@ -26,47 +40,51 @@ export default function DashboardFuncionario({
 }: Props) {
   const [tela, setTela] = useState<Tela>('HOME')
   const [resultadoGestor, setResultadoGestor] =
-    useState<Resultado | null>(null)
+    useState<AvaliacaoResumo | null>(null)
+
   const [resultadoAuto, setResultadoAuto] =
-    useState<Resultado | null>(null)
+    useState<AvaliacaoResumo | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // - CONTROLE DE RELOAD
+  // força reload após voltar de telas secundárias
   const [reload, setReload] = useState(0)
 
-  // - VOLTA PARA HOME E FORCA RELOAD
   function voltarHome() {
     setTela('HOME')
     setReload(r => r + 1)
   }
 
- 
-    //- CARREGA RESULTADOS
-
+  // ─────────────────────────────────────────────
+  // CARREGA RESULTADOS (GESTOR / AUTO)
+  // ─────────────────────────────────────────────
   useEffect(() => {
     setLoading(true)
 
     fetch(
-      `http://localhost:4000/api/funcionarios/${funcionario.id}/historico`
+      `http://localhost:4000/api/funcionarios/${funcionario.id}/resumo-ciclo-ativo`
     )
-      .then(res => res.json())
-      .then((dados: Resultado[]) => {
-        const gestor = dados.find(
-          d => d.tipo === 'GESTOR'
-        )
-        const auto = dados.find(
-          d => d.tipo === 'AUTO'
-        )
-
-        setResultadoGestor(gestor || null)
-        setResultadoAuto(auto || null)
+      .then(res => {
+        if (!res.ok) {
+          throw new Error('Erro ao carregar resumo do ciclo')
+        }
+        return res.json() as Promise<ResumoCicloAtivo>
+      })
+      .then(data => {
+        setResultadoGestor(data.gestor)
+        setResultadoAuto(data.auto)
+      })
+      .catch(() => {
+        setResultadoGestor(null)
+        setResultadoAuto(null)
       })
       .finally(() => setLoading(false))
   }, [funcionario.id, reload])
 
-  
-    // - TELAS SECUNDARIAS
 
+
+  // ─────────────────────────────────────────────
+  // TELAS SECUNDÁRIAS
+  // ─────────────────────────────────────────────
   if (tela === 'AUTOAVALIACAO') {
     return (
       <Autoavaliacao
@@ -85,86 +103,121 @@ export default function DashboardFuncionario({
     )
   }
 
-
-    // - HOME
-
+  // ─────────────────────────────────────────────
+  // HOME
+  // ─────────────────────────────────────────────
   return (
-    <div style={{ padding: 30 }}>
-      <h1>Olá, {funcionario.nome}</h1>
-      <p>Bem-vindo(a) à sua área de avaliações.</p>
+    <div className="page">
+      <div className="page-content">
+        <div className="dashboard dashboard-center">
+          <h1 className="dashboard-title">
+            👤 Olá, {funcionario.nome}
+          </h1>
 
-      <hr style={{ margin: '20px 0' }} />
+          <p className="dashboard-subtitle">
+            Bem-vindo(a) à sua área de avaliações
+          </p>
 
-      {loading && <p>Carregando avaliações...</p>}
+          <div className="dashboard-divider" />
 
-      {!loading && (
-        <>
-          {/* - AVALIACAO DO GESTOR */}
-          <h2>Avaliação do Gestor</h2>
+          {loading && <p>Carregando avaliações...</p>}
 
-          {resultadoGestor ? (
-            <NineBox
-              desempenho={resultadoGestor.desempenho}
-              potencial={resultadoGestor.potencial}
-            />
-          ) : (
-            <p>
-              ⚠️ Você ainda não foi avaliado por um
-              gestor.
-            </p>
+          {!loading && (
+            <>
+              {/* NINE BOX COMPARATIVA */}
+              <h2 className="dashboard-section-title">
+                📊 Avaliação de Desempenho (Nine Box)
+              </h2>
+
+              {(resultadoGestor || resultadoAuto) ? (
+                <NineBox
+                  gestor={
+                    resultadoGestor
+                      ? {
+                          desempenho:
+                            resultadoGestor.desempenho,
+                          potencial:
+                            resultadoGestor.potencial
+                        }
+                      : undefined
+                  }
+                  auto={
+                    resultadoAuto
+                      ? {
+                          desempenho:
+                            resultadoAuto.desempenho,
+                          potencial:
+                            resultadoAuto.potencial
+                        }
+                      : undefined
+                  }
+                />
+              ) : (
+                <p className="dashboard-warning">
+                  Nenhuma avaliação disponível até o momento.
+                </p>
+              )}
+
+              <div className="dashboard-divider" />
+
+              {/* AVISOS CONTEXTUAIS */}
+              {!resultadoGestor && (
+                <p className="dashboard-warning">
+                  ⚠️ Você ainda não foi avaliado por um gestor.
+                </p>
+              )}
+
+              {!resultadoAuto && resultadoGestor && (
+                <p className="dashboard-warning">
+                  📝 Você ainda não realizou sua autoavaliação.
+                </p>
+              )}
+
+              <div className="dashboard-divider" />
+
+              {/* AÇÕES */}
+              <h2 className="dashboard-section-title">
+                Ações
+              </h2>
+
+              <div className="dashboard-menu">
+                {!resultadoAuto && resultadoGestor && (
+                  <button
+                    className="dashboard-item"
+                    onClick={() =>
+                      setTela('AUTOAVALIACAO')
+                    }
+                  >
+                    ⭐ Fazer Autoavaliação
+                    <small>
+                      Avalie seu próprio desempenho
+                    </small>
+                  </button>
+                )}
+
+                <button
+                  className="dashboard-item"
+                  onClick={() => setTela('HISTORICO')}
+                >
+                  🕓 Histórico
+                  <small>
+                    Avaliações anteriores
+                  </small>
+                </button>
+
+                <div className="dashboard-divider" />
+
+                <button
+                  className="dashboard-logout"
+                  onClick={onLogout}
+                >
+                  🚪 Sair do sistema
+                </button>
+              </div>
+            </>
           )}
-
-          <hr style={{ margin: '20px 0' }} />
-
-          {/* - AUTOAVALIACAO */}
-          <h2>Autoavaliação</h2>
-
-          {resultadoAuto ? (
-            <NineBox
-              desempenho={resultadoAuto.desempenho}
-              potencial={resultadoAuto.potencial}
-            />
-          ) : (
-            <p>
-              📝 Você ainda não realizou sua
-              autoavaliação.
-            </p>
-          )}
-
-          <hr style={{ margin: '20px 0' }} />
-
-          {/* - ACOES */}
-          <h2>Ações</h2>
-
-          <div
-            style={{
-              display: 'flex',
-              gap: 15,
-              marginTop: 15
-            }}
-          >
-            {!resultadoAuto && resultadoGestor && (
-              <button
-                onClick={() =>
-                  setTela('AUTOAVALIACAO')
-                }
-              >
-                Fazer Autoavaliação
-              </button>
-            )}
-
-            <button
-              onClick={() => setTela('HISTORICO')}
-            >
-              🕓 Histórico
-            </button>
-
-            <button onClick={onLogout}>
-              🚪 Sair
-            </button>
-          </div>
-        </>
-      )}
+        </div>
+      </div>
     </div>
   )
 }

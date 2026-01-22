@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import ListaFuncionarios from './ListaFuncionarios'
-import ModelosAvaliacao from '../gestor/ModelosAvaliacao'
+import ModelosAvaliacaoAdmin from './ModelosAvaliacaoAdmin'
 import Configuracoes from './Configuracoes'
 
 type Tela =
@@ -28,7 +28,7 @@ export default function DashboardAdmin({ onLogout }: Props) {
 
   if (tela === 'MODELOS') {
     return (
-      <ModelosAvaliacao onVoltar={() => setTela('HOME')} />
+      <ModelosAvaliacaoAdmin onVoltar={() => setTela('HOME')} />
     )
   }
 

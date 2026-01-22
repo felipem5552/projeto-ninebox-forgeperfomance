@@ -40,7 +40,40 @@ ava_Router.post('/avaliacoes', (req: Request, res: Response) => {
   )
 })
 
+// - ATIVAR / DESATIVAR MODELO
+
+ava_Router.put('/avaliacoes-status/:id', (req: Request, res: Response) => {
+  console.log('🔥 ROTA STATUS CHAMADA')
+
+  const id = Number(req.params.id)
+  const { ativo } = req.body as { ativo?: number }
+
+  if (ativo !== 0 && ativo !== 1) {
+    return res.status(400).json({
+      erro: 'Valor de ativo inválido (use 0 ou 1)'
+    })
+  }
+
+  AvaliacaoRepository.alterarStatusModelo(
+    id,
+    ativo,
+    notFound => {
+      if (notFound) {
+        return res.status(404).json({
+          erro: 'Modelo não encontrado'
+        })
+      }
+
+      res.json({
+        sucesso: true,
+        ativo
+      })
+    }
+  )
+})
+
 // - ATUALIZAR MODELO
+
 ava_Router.put('/avaliacoes/:id', (req: Request, res: Response) => {
   const id = Number(req.params.id)
   const { titulo } = req.body as { titulo?: string }
@@ -63,6 +96,8 @@ ava_Router.put('/avaliacoes/:id', (req: Request, res: Response) => {
     }
   )
 })
+
+
 
 // - VERIFICAR USO DO MODELO
 ava_Router.get('/avaliacoes/:id/uso', (req: Request, res: Response) => {
@@ -110,6 +145,12 @@ ava_Router.post('/avaliacoes/:id', (req: Request, res: Response) => {
       res.status(201).json({ id })
     }
   )
+})
+// - LISTAR MODELOS ATIVOS (GESTOR)
+ava_Router.get('/avaliacoes-ativas', (_req: Request, res: Response) => {
+  AvaliacaoRepository.listarModelosAtivos(modelos => {
+    res.json(modelos)
+  })
 })
 
 // - ATUALIZAR PERGUNTA

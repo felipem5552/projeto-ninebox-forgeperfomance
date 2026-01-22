@@ -1,6 +1,5 @@
 import database from './database'
 
-
 // - TIPOS
 
 export type CicloRow = {
@@ -11,14 +10,10 @@ export type CicloRow = {
   data_fim?: string | null
 }
 
-
 // - REPOSITÓRIO DE CICLOS
 
 const CicloRepository = {
-
-  
   // - CRIAR CICLO
-  
   criar(
     dados: {
       nome: string
@@ -28,8 +23,8 @@ const CicloRepository = {
     callback: (id?: number) => void
   ) {
     const sql = `
-      INSERT INTO ciclos (nome, data_inicio, data_fim)
-      VALUES (?, ?, ?)
+      INSERT INTO ciclos (nome, ativo, data_inicio, data_fim)
+      VALUES (?, 0, ?, ?)
     `
 
     database.run(
@@ -40,15 +35,16 @@ const CicloRepository = {
         dados.data_fim || null
       ],
       function (err) {
-        if (err) return callback(undefined)
+        if (err) {
+          console.error('Erro ao criar ciclo:', err)
+          return callback(undefined)
+        }
         callback(this.lastID)
       }
     )
   },
 
-  
-  // - LISTAR TODOS OS CICLOS
-  
+  // - LISTAR CICLOS
   listar(callback: (ciclos: CicloRow[]) => void) {
     const sql = `
       SELECT *
@@ -56,18 +52,12 @@ const CicloRepository = {
       ORDER BY id DESC
     `
 
-    database.all(
-      sql,
-      [],
-      (_err, rows: CicloRow[]) => {
-        callback(rows || [])
-      }
-    )
+    database.all(sql, [], (_err, rows: CicloRow[]) => {
+      callback(rows || [])
+    })
   },
 
-  
   // - BUSCAR CICLO ATIVO
-  
   buscarAtivo(callback: (ciclo: CicloRow | null) => void) {
     const sql = `
       SELECT *
@@ -76,72 +66,71 @@ const CicloRepository = {
       LIMIT 1
     `
 
-    database.get(
-      sql,
-      [],
-      (_err, row: CicloRow | undefined) => {
-        callback(row || null)
-      }
-    )
+    database.get(sql, [], (_err, row: CicloRow | undefined) => {
+      callback(row || null)
+    })
   },
 
-  
-  // - BUSCAR CICLO POR ID
-  
-  buscarPorId(
-    id: number,
-    callback: (ciclo: CicloRow | null) => void
-  ) {
+  // - ATIVAR CICLO (desativa todos antes)
+  ativar(id: number, callback: (sucesso: boolean) => void) {
+    database.serialize(() => {
+      database.run(`UPDATE ciclos SET ativo = 0`, err => {
+        if (err) return callback(false)
+
+        database.run(
+          `UPDATE ciclos SET ativo = 1 WHERE id = ?`,
+          [id],
+          function (err2) {
+            if (err2 || this.changes === 0) {
+              return callback(false)
+            }
+            callback(true)
+          }
+        )
+      })
+    })
+  },
+  podeAvaliar(cicloId: number, callback: (pode: boolean) => void) {
     const sql = `
-      SELECT *
+      SELECT data_inicio, data_fim
       FROM ciclos
       WHERE id = ?
     `
 
     database.get(
       sql,
-      [id],
-      (_err, row: CicloRow | undefined) => {
-        callback(row || null)
+      [cicloId],
+      (_err, row: { data_inicio?: string | null; data_fim?: string | null } | undefined) => {
+        if (!row) return callback(false)
+
+        const hoje = new Date()
+
+        const inicio = row.data_inicio
+          ? new Date(row.data_inicio)
+          : null
+
+        const fim = row.data_fim
+          ? new Date(row.data_fim)
+          : null
+
+        if (inicio && hoje < inicio) return callback(false)
+        if (fim && hoje > fim) return callback(false)
+
+        callback(true)
       }
     )
   },
+  // - DESATIVAR CICLO
+  desativar(id: number, callback: (sucesso: boolean) => void) {
+    const sql = `
+      UPDATE ciclos SET ativo = 0 WHERE id = ?
+    `
 
-  
-  // - ATIVAR CICLO (DESATIVA OS OUTROS)
-  
-  ativar(
-    id: number,
-    callback: (sucesso: boolean) => void
-  ) {
-    database.serialize(() => {
-      database.run('BEGIN TRANSACTION')
-
-      // - DESATIVA TODOS
-      database.run(
-        `UPDATE ciclos SET ativo = 0`,
-        [],
-        err => {
-          if (err) {
-            database.run('ROLLBACK')
-            return callback(false)
-          }
-
-          // - ATIVA O SELECIONADO
-          database.run(
-            `UPDATE ciclos SET ativo = 1 WHERE id = ?`,
-            [id],
-            function (err2) {
-              if (err2 || this.changes === 0) {
-                database.run('ROLLBACK')
-                return callback(false)
-              }
-
-              database.run('COMMIT', () => callback(true))
-            }
-          )
-        }
-      )
+    database.run(sql, [id], function (err) {
+      if (err || this.changes === 0) {
+        return callback(false)
+      }
+      callback(true)
     })
   }
 }

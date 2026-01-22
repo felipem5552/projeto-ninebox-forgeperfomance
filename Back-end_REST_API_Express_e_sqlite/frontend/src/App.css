@@ -339,3 +339,198 @@ label {
   margin-top: 40px; 
 }
 
+/* ============================= */
+/* NINE BOX                      */
+/* ============================= */
+
+.ninebox-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+/* LAYOUT COM EIXOS */
+
+.ninebox-layout {
+  display: grid;
+  grid-template-columns: auto auto;
+  gap: 12px;
+  align-items: center;
+}
+
+/* GRID */
+
+.ninebox-grid {
+  border-collapse: collapse;
+}
+
+.ninebox-grid td {
+  width: 70px;
+  height: 70px;
+  border: 1px solid #555;
+  position: relative;
+}
+
+/* CORES POR NÍVEL DE QUADRANTE */
+
+
+.ninebox-cell.q-alto {
+  background: #1f3d1f; /* verde escuro elegante */
+}
+
+.ninebox-cell.q-medio {
+  background: #4a3b12; /* amarelo queimado corporativo */
+}
+
+.ninebox-cell.q-baixo {
+  background: #4a1f1f; /* vermelho escuro sóbrio */
+}
+
+/* EIXO Y – POTENCIAL */
+
+.axis-y {
+  display: grid;
+  grid-template-rows: repeat(3, 70px);
+  align-items: center;
+  font-size: 13px;
+  opacity: 0.85;
+  text-align: right;
+  padding-right: 6px;
+}
+
+.axis-y strong {
+  grid-row: 4;
+  margin-top: 6px;
+  font-size: 12px;
+  text-align: right;
+}
+
+/* EIXO X – DESEMPENHO */
+
+/* EIXO X – DESEMPENHO (ALINHADO À GRID) */
+
+.axis-x {
+  display: grid;
+  grid-template-columns: repeat(3, 70px);
+  justify-content: start;
+  margin-left: 60px; 
+  text-align: center;
+  font-size: 13px;
+  opacity: 0.85;
+  margin-top: 6px;
+}
+
+.axis-x span {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 24px;
+}
+
+.axis-x strong {
+  grid-column: span 3;
+  margin-top: 6px;
+  font-size: 12px;
+}
+
+/* MARCADORES (G / A) */
+
+.marker {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  font-size: 16px;
+  font-weight: bold;
+  padding: 6px 10px;
+  border-radius: 8px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.marker.gestor {
+  background: #4caf50;
+  color: #000;
+}
+
+.marker.auto {
+  background: #ffb300;
+  color: #000;
+}
+
+/* LEGENDA */
+
+.ninebox-legend {
+  display: flex;
+  gap: 24px;
+  font-size: 13px;
+  opacity: 0.85;
+}
+
+.legend {
+  font-weight: bold;
+}
+
+/* RESUMO */
+
+.ninebox-summary {
+  text-align: center;
+  font-size: 14px;
+  max-width: 520px;
+  line-height: 1.4;
+}
+
+.ninebox-compare {
+  margin-top: 6px;
+  font-style: italic;
+  opacity: 0.85;
+}
+.marker.both {
+  background: #ffffff;
+  color: #000;
+  font-size: 13px;
+  font-weight: bold;
+  padding: 6px 10px;
+  border-radius: 10px;
+}
+.ciclo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  gap: 10px;
+}
+
+.ciclo-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ciclo-datas {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.ciclo-acoes {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-danger {
+  background: #c62828;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-danger:hover {
+  background: #b71c1c;
+}

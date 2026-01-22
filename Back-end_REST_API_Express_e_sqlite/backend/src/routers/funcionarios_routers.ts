@@ -211,5 +211,30 @@ funcionariosRouter.get(
     )
   }
 )
+//- RESUMO DO CICLO ATIVO (DASHBOARD FUNCIONÁRIO)
+funcionariosRouter.get(
+  '/funcionarios/:id/resumo-ciclo-ativo',
+  (req: Request, res: Response) => {
+    const id = Number(req.params.id)
+
+    if (isNaN(id)) {
+      return res.status(400).json({ erro: 'ID inválido' })
+    }
+
+    AvaliacaoRepository.buscarResumoCicloAtivo(
+      id,
+      resultado => {
+        if (!resultado) {
+          return res.status(404).json({
+            erro: 'Nenhum ciclo ativo encontrado'
+          })
+        }
+
+        res.json(resultado)
+      }
+    )
+  }
+)
+
 
 export default funcionariosRouter

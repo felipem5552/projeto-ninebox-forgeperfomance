@@ -49,6 +49,15 @@ export type Ciclo = {
   data_inicio?: string | null
   data_fim?: string | null
 }
+export type RelatorioNineBoxTime = {
+  time_id: number
+  time_nome: string
+  tipo: 'GESTOR' | 'AUTO'
+  desempenho_medio: number
+  potencial_medio: number
+  quantidade: number
+}
+
 
 // - AUTENTICAÇÃO
 
@@ -216,6 +225,38 @@ export async function listarModelosAvaliacao(): Promise<
 
   return data
 }
+// - MODELOS DE AVALIAÇÃO (SÓ ATIVOS)
+
+export async function listarModelosAvaliacaoAtivos(): Promise<
+  { id: number; titulo: string }[]
+> {
+  const res = await fetch(`${API_URL}/avaliacoes-ativas`)
+  const data = await res.json()
+
+  if (!res.ok) {
+    throw new Error(data?.erro || 'Erro ao listar modelos ativos')
+  }
+
+  return data
+}
+// - ATIVAR / DESATIVAR MODELO
+
+export async function alterarStatusModelo(
+  modeloId: number,
+  ativo: number
+): Promise<void> {
+  const res = await fetch(`${API_URL}/avaliacoes-status/${modeloId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ ativo })
+  })
+
+  const data = await res.json()
+
+  if (!res.ok) {
+    throw new Error(data?.erro || 'Erro ao alterar status do modelo')
+  }
+}
 
 export async function criarAvaliacao(
   titulo: string
@@ -311,13 +352,7 @@ export async function avaliarFuncionario(payload: {
 
 export async function nineBoxPorTime(
   cicloId: number
-): Promise<
-  {
-    time: string
-    nine_box: number
-    quantidade: number
-  }[]
-> {
+): Promise<RelatorioNineBoxTime[]> {
   const res = await fetch(
     `${API_URL}/relatorios/ninebox-por-time?cicloId=${cicloId}`
   )
@@ -330,3 +365,141 @@ export async function nineBoxPorTime(
 
   return data
 }
+export async function nineBoxPorTimeEvolucao(
+  timeId: number
+): Promise<
+  {
+    ciclo_id: number
+    ciclo_nome: string
+    tipo: 'GESTOR' | 'AUTO'
+    desempenho_medio: number
+    potencial_medio: number
+    quantidade: number
+  }[]
+> {
+  const res = await fetch(
+    `${API_URL}/relatorios/ninebox-por-time-evolucao?timeId=${timeId}`
+  )
+
+  const data = await res.json()
+
+  if (!res.ok) {
+    throw new Error(data?.erro || 'Erro ao carregar evolução do time')
+  }
+
+  return data
+}
+export async function buscarResumoCicloFuncionario(
+  funcionarioId: number,
+  cicloId: number
+): Promise<{
+  ciclo: {
+    id: number
+    nome: string
+  }
+  gestor: {
+    desempenho: number
+    potencial: number
+    nine_box: number
+    tipo: 'GESTOR'
+  } | null
+  auto: {
+    desempenho: number
+    potencial: number
+    nine_box: number
+    tipo: 'AUTO'
+  } | null
+}> {
+  const res = await fetch(
+    `${API_URL}/relatorios/funcionario?funcionarioId=${funcionarioId}&cicloId=${cicloId}`
+  )
+
+  const data = await res.json()
+
+  if (!res.ok) {
+    throw new Error(
+      data?.erro || 'Erro ao buscar resumo do funcionário'
+    )
+  }
+
+  return data
+}
+
+export async function buscarEvolucaoFuncionario(
+  funcionarioId: number
+): Promise<
+  {
+    ciclo_id: number
+    ciclo_nome: string
+    desempenho: number
+    potencial: number
+    nine_box: number
+    tipo: 'GESTOR' | 'AUTO'
+  }[]
+> {
+  const res = await fetch(
+    `${API_URL}/relatorios/funcionario-evolucao?funcionarioId=${funcionarioId}`
+  )
+
+  const data = await res.json()
+
+  if (!res.ok) {
+    throw new Error(
+      data?.erro || 'Erro ao buscar evolução do funcionário'
+    )
+  }
+
+  return data
+}
+export async function podeAvaliar(cicloId: number): Promise<{
+  pode: boolean
+  motivo?: string
+}> {
+  const res = await fetch(
+    `${API_URL}/ciclos/${cicloId}/pode-avaliar`
+  )
+
+  const data = await res.json()
+
+  if (!res.ok) {
+    throw new Error(data?.erro || 'Erro ao verificar ciclo')
+  }
+
+  return data
+}
+export async function buscarPerguntasRespostasFuncionario(
+  funcionarioId: number,
+  cicloId: number
+): Promise<{
+  gestor: {
+    enunciado: string
+    eixo: 'DESEMPENHO' | 'POTENCIAL'
+    peso: number
+    nota: number
+  }[]
+  auto: {
+    enunciado: string
+    eixo: 'DESEMPENHO' | 'POTENCIAL'
+    peso: number
+    nota: number
+  }[]
+}> {
+  const res = await fetch(
+    `${API_URL}/relatorios/funcionario-perguntas?funcionarioId=${funcionarioId}&cicloId=${cicloId}`
+  )
+
+  const data = await res.json()
+
+  if (!res.ok) {
+    throw new Error(
+      data?.erro ||
+        'Erro ao buscar perguntas e respostas do funcionário'
+    )
+  }
+  
+  return data
+}
+
+
+
+

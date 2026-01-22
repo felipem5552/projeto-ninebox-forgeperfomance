@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import {
   listarModelosAvaliacao,
-  verificarUsoModelo
+  verificarUsoModelo,
+  alterarStatusModelo 
 } from '../../services/api'
 import CriarModeloAvaliacao from '../gestor/CriarModeloAvaliacao'
 import EditarModeloAvaliacao from '../gestor/EditarModeloAvaliacao'
@@ -22,7 +23,7 @@ type Props = {
   onVoltar: () => void
 }
 
-export default function ListaModelosAvaliacao({
+export default function ModelosAvaliacaoAdmin({
   onVoltar
 }: Props) {
   // - ESTADOS
@@ -32,6 +33,8 @@ export default function ListaModelosAvaliacao({
     useState<Modelo | null>(null)
   const [loading, setLoading] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
+  const [alterandoStatus, setAlterandoStatus] =
+    useState<number | null>(null) // ✅ controle de loading por modelo
 
   // - CARREGAR MODELOS
   async function carregar() {
@@ -63,13 +66,31 @@ export default function ListaModelosAvaliacao({
     } finally {
       setLoading(false)
     }
-}
+  }
 
   useEffect(() => {
     if (tela === 'LISTA') {
       carregar()
     }
   }, [tela])
+
+  // ✅ ATIVAR / DESATIVAR MODELO
+  async function toggleStatus(modelo: Modelo) {
+    try {
+      setAlterandoStatus(modelo.id)
+
+      const novoStatus = modelo.ativo === 1 ? 0 : 1
+
+      await alterarStatusModelo(modelo.id, novoStatus)
+
+      // 🔄 atualiza lista
+      await carregar()
+    } catch (err) {
+      alert('Erro ao alterar status do modelo')
+    } finally {
+      setAlterandoStatus(null)
+    }
+  }
 
   // - TELAS SECUNDÁRIAS
 
@@ -142,7 +163,8 @@ export default function ListaModelosAvaliacao({
                     )}
                   </td>
 
-                  <td>
+                  <td style={{ display: 'flex', gap: 8 }}>
+                    {/* EDITAR */}
                     <button
                       disabled={m.usado}
                       onClick={() => {
@@ -156,6 +178,34 @@ export default function ListaModelosAvaliacao({
                       }
                     >
                       ✏️ Editar
+                    </button>
+
+                    {/* ATIVAR / DESATIVAR (ADMIN) */}
+                    <button
+                      onClick={() => toggleStatus(m)}
+                      disabled={alterandoStatus === m.id}
+                      style={{
+                        background:
+                          m.ativo === 1 ? '#ff4d4f' : '#52c41a',
+                        color: 'white',
+                        border: 'none',
+                        padding: '4px 8px',
+                        borderRadius: 4,
+                        cursor: 'pointer',
+                        opacity:
+                          alterandoStatus === m.id ? 0.6 : 1
+                      }}
+                      title={
+                        m.ativo === 1
+                          ? 'Desativar modelo'
+                          : 'Ativar modelo'
+                      }
+                    >
+                      {alterandoStatus === m.id
+                        ? '...'
+                        : m.ativo === 1
+                        ? 'Desativar'
+                        : 'Ativar'}
                     </button>
                   </td>
                 </tr>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import {
   listarFuncionarios,
-  listarModelosAvaliacao,
+  listarModelosAvaliacaoAtivos, 
   type Funcionario
 } from '../../services/api'
 
@@ -13,15 +13,17 @@ type Modelo = {
 }
 
 type Props = {
-  onVoltar: () => void
   avaliadorId: number
-  funcionario?: Funcionario
+  funcionario: Funcionario
+  onVoltar: () => void
+  onAtualizar: () => void
 }
 
 export default function AvaliarFuncionarioFluxo({
   onVoltar,
   avaliadorId,
-  funcionario: funcionarioInicial
+  funcionario: funcionarioInicial,
+  onAtualizar
 }: Props) {
   const [funcionarios, setFuncionarios] =
     useState<Funcionario[]>([])
@@ -40,31 +42,29 @@ export default function AvaliarFuncionarioFluxo({
   const [iniciar, setIniciar] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
 
-  
   // - CARREGA FUNCIONÁRIOS E MODELOS
-  
   useEffect(() => {
     listarFuncionarios().then(setFuncionarios)
-    listarModelosAvaliacao().then(setModelos)
+
+    // ✅ AGORA BUSCA SÓ MODELOS ATIVOS
+    listarModelosAvaliacaoAtivos().then(setModelos)
   }, [])
 
-  
   // - INICIAR AVALIAÇÃO
-  
   if (iniciar && funcionarioSelecionado && modeloSelecionado) {
     return (
       <AvaliarFuncionario
         avaliadorId={avaliadorId}
         funcionario={funcionarioSelecionado}
         modeloId={modeloSelecionado}
-        onVoltar={onVoltar}
+        onVoltar={() => {
+          onAtualizar()
+          onVoltar()
+        }}
       />
     )
   }
 
-  
-  // - TELA DE SELEÇÃO
-  
   return (
     <div style={{ padding: 30 }}>
       <button onClick={onVoltar}>Voltar</button>
@@ -91,7 +91,7 @@ export default function AvaliarFuncionarioFluxo({
             </option>
 
             {funcionarios
-              .filter(f => f.ativo) // ⛔ não avalia inativo
+              .filter(f => f.ativo)
               .map(f => (
                 <option key={f.id} value={f.id}>
                   {f.nome}
@@ -129,9 +129,7 @@ export default function AvaliarFuncionarioFluxo({
       <button
         onClick={() => {
           if (!funcionarioSelecionado || !modeloSelecionado) {
-            setErro(
-              'Selecione o funcionário e o modelo'
-            )
+            setErro('Selecione o funcionário e o modelo')
             return
           }
 
