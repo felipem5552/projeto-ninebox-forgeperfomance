@@ -306,15 +306,34 @@ export default function FuncionariosGestor({
                       >
                        Histórico
                       </button>
-
                       <button
-                        disabled={bloqueado}
+                          style={{
+                          opacity: bloqueado ? 0.5 : 1,
+                          cursor: bloqueado ? 'not-allowed' : 'pointer'
+                        }}
                         onClick={() => {
+                          const jaAvaliado = avaliados.includes(func.id)
+                          const inativo = !func.ativo
+
+                          if (!podeAvaliarCiclo?.pode) {
+                            alert(`⛔ ${podeAvaliarCiclo?.motivo || 'Ciclo não disponível'}`)
+                            return
+                          }
+
+                          if (inativo) {
+                            alert('⛔ Funcionário inativo não pode ser avaliado.')
+                            return
+                          }
+
+                          if (jaAvaliado) {
+                            alert('⚠️ Este funcionário já foi avaliado neste ciclo.')
+                            return
+                          }
                           setFuncionarioSelecionado(func)
                           setTela('AVALIAR')
                         }}
                       >
-                       Avaliar
+                        Avaliar
                       </button>
                     </td>
                   </tr>

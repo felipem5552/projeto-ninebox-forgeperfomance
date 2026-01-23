@@ -54,17 +54,17 @@ export default function RelatorioTimes({ onVoltar }: Props) {
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
 
-  // ─────────────────────────────────────────────
+  
   // LOAD INICIAL
-  // ─────────────────────────────────────────────
+  
   useEffect(() => {
     listarFuncionarios().then(setFuncionarios)
     listarCiclos().then(setCiclos)
   }, [])
 
-  // ─────────────────────────────────────────────
-  // RELATÓRIO POR CICLO (TODOS OS TIMES OU UM TIME)
-  // ─────────────────────────────────────────────
+  
+  // RELATÓRIO POR CICLO 
+  
   useEffect(() => {
     if (!cicloId) return
 
@@ -85,9 +85,9 @@ export default function RelatorioTimes({ onVoltar }: Props) {
       .finally(() => setLoading(false))
   }, [cicloId, timeId])
 
-  // ─────────────────────────────────────────────
+  
   // EVOLUÇÃO DO TIME (TODOS OS CICLOS)
-  // ─────────────────────────────────────────────
+  
   useEffect(() => {
     if (!timeId || cicloId) return
 
@@ -102,9 +102,9 @@ export default function RelatorioTimes({ onVoltar }: Props) {
       .finally(() => setLoading(false))
   }, [timeId, cicloId])
 
-  // ─────────────────────────────────────────────
+  
   // AGRUPAMENTO GESTOR + AUTO (POR TIME)
-  // ─────────────────────────────────────────────
+  
   const agrupadoPorTime = useMemo(() => {
     const mapa: Record<
       number,
@@ -139,9 +139,9 @@ export default function RelatorioTimes({ onVoltar }: Props) {
     return mapa
   }, [dadosTime])
 
-  // ─────────────────────────────────────────────
+  
   // AGRUPAMENTO EVOLUÇÃO (POR CICLO)
-  // ─────────────────────────────────────────────
+  
   const evolucaoAgrupada = useMemo(() => {
     return evolucao.reduce<Record<number, EvolucaoRow[]>>(
       (acc, item) => {
@@ -176,15 +176,15 @@ export default function RelatorioTimes({ onVoltar }: Props) {
     }
   }
 
-  // ─────────────────────────────────────────────
+  
   // RENDER
-  // ─────────────────────────────────────────────
+  
   return (
     <div className="page">
       <div className="page-content">
         <div className="dashboard">
           <div className="page-header">
-            <h2>📊 Relatórios por Time</h2>
+            <h2> Relatórios por Time</h2>
             <button className="btn-secondary" onClick={onVoltar}>
               ⬅️ Voltar
             </button>

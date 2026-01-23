@@ -165,7 +165,7 @@ export default function TimesAdmin() {
       <h3>
         {editandoId
           ? '✏️ Editar Time'
-          : '➕ Novo Time'}
+          : ' Novo Time'}
       </h3>
 
       <label>Nome do time</label>

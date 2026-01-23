@@ -159,7 +159,7 @@ export default function GraficoEvolucao({ onVoltar }: Props) {
       <div className="page-content">
         <div className="dashboard">
           <div className="page-header">
-            <h2>📈 Gráficos de Evolução</h2>
+            <h2> Gráficos de Evolução</h2>
             <button className="btn-secondary" onClick={onVoltar}>
               ⬅️ Voltar
             </button>

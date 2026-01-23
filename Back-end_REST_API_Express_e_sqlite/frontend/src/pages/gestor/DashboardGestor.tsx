@@ -23,9 +23,9 @@ export default function DashboardGestor({
 
   const voltarHome = () => setTela('HOME')
 
-  // =============================
+  
   // TELAS
-  // =============================
+  
 
   if (tela === 'MODELOS') {
     return <ModelosAvaliacao onVoltar={voltarHome} />
@@ -44,9 +44,9 @@ export default function DashboardGestor({
     return <RelatoriosGestor onVoltar={voltarHome} />
   }
 
-  // =============================
+  
   // HOME
-  // =============================
+  
   return (
     <div className="page">
       <div className="page-content">

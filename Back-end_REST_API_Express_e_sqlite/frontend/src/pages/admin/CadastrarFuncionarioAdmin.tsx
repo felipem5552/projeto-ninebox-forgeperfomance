@@ -92,7 +92,7 @@ export default function CadastrarFuncionarioAdmin({
   return (
     <div className="page">
       <div className="page-content form-sm">
-        <h2>➕ Cadastrar Funcionário</h2>
+        <h2> Cadastrar Funcionário</h2>
         <label>Nome *</label>
         <input
           value={nome}

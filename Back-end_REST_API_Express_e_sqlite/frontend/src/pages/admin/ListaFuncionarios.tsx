@@ -107,7 +107,7 @@ export default function ListaFuncionarios({ onVoltar }: Props) {
       <div className="page-content">
         <div className="dashboard">
 
-          <h2 className="dashboard-title">👥 Funcionários</h2>
+          <h2 className="dashboard-title"> Funcionários</h2>
 
           <div className="dashboard-divider" />
           <div className="filters-row">

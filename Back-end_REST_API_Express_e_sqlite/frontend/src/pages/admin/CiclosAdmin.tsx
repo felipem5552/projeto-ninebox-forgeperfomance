@@ -68,7 +68,7 @@ export default function CiclosAdmin() {
 
   return (
     <div className="form-sm">
-      <h2>🔁 Ciclos de Avaliação</h2>
+      <h2> Ciclos de Avaliação</h2>
 
       <div className="list-box">
         {ciclos.length === 0 && (
@@ -110,7 +110,7 @@ export default function CiclosAdmin() {
 
       <div className="dashboard-divider" />
 
-      <h3>➕ Novo Ciclo</h3>
+      <h3> Novo Ciclo</h3>
 
       <label>Nome do ciclo</label>
       <input

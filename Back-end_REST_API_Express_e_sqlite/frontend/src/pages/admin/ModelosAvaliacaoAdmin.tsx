@@ -166,8 +166,16 @@ export default function ModelosAvaliacaoAdmin({
                   <td style={{ display: 'flex', gap: 8 }}>
                     {/* EDITAR */}
                     <button
-                      disabled={m.usado}
+                      style={{
+                        opacity: m.usado ? 0.4 : 1,
+                        cursor: m.usado ? 'not-allowed' : 'pointer'
+                      }}
                       onClick={() => {
+                        if (m.usado) {
+                          alert('⛔ Este modelo já foi usado e não pode ser editado.')
+                          return
+                        }
+
                         setModeloEdicao(m)
                         setTela('EDITAR')
                       }}

@@ -39,7 +39,7 @@ export default function Configuracoes({ onVoltar }: Props) {
               className={`tab-button ${aba === 'CICLOS' ? 'active' : ''}`}
               onClick={() => setAba('CICLOS')}
             >
-              🔁 Ciclos de Avaliação
+             Ciclos de Avaliação
             </button>
 
             <button className="btn-secondary" onClick={onVoltar}>

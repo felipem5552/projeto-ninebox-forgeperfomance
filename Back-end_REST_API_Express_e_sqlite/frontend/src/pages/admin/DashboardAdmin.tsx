@@ -47,7 +47,7 @@ export default function DashboardAdmin({ onLogout }: Props) {
         <div className="dashboard">
 
           <h1 className="dashboard-title">
-            🛠️ Painel Administrativo
+             Painel Administrativo
           </h1>
 
           <p className="dashboard-subtitle">
@@ -102,7 +102,7 @@ export default function DashboardAdmin({ onLogout }: Props) {
             className="dashboard-logout"
             onClick={onLogout}
           >
-            🚪 Sair do sistema
+             Sair do sistema
           </button>
 
         </div>

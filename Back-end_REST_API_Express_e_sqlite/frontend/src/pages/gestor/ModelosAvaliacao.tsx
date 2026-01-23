@@ -98,7 +98,7 @@ export default function ListaModelosAvaliacao({
   return (
     <div className="page">
       <div className="page-content">
-        <h2>📋 Modelos de Avaliação</h2>
+        <h2> Modelos de Avaliação</h2>
 
         {loading && <p>Carregando modelos...</p>}
 
@@ -144,8 +144,16 @@ export default function ListaModelosAvaliacao({
 
                   <td>
                     <button
-                      disabled={m.usado}
+                      style={{
+                        opacity: m.usado ? 0.4 : 1,
+                        cursor: m.usado ? 'not-allowed' : 'pointer'
+                      }}
                       onClick={() => {
+                        if (m.usado) {
+                          alert('⛔ Este modelo já foi usado e não pode ser editado.')
+                          return
+                        }
+
                         setModeloEdicao(m)
                         setTela('EDITAR')
                       }}

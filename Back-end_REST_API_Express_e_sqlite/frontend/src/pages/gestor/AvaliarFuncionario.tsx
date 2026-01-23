@@ -44,7 +44,7 @@ export default function AvaliarFuncionario({
   const [sucesso, setSucesso] = useState(false)
 
 
-  // CICLO ATIVO
+  //- CICLO ATIVO
 
   useEffect(() => {
     buscarCicloAtivo()
@@ -55,7 +55,7 @@ export default function AvaliarFuncionario({
   }, [])
 
 
-  // PERGUNTAS
+  //- PERGUNTAS
 
   useEffect(() => {
     setLoading(true)
@@ -74,7 +74,7 @@ export default function AvaliarFuncionario({
   }, [modeloId])
 
 
-  // ALTERAR NOTA
+  //- ALTERAR NOTA
 
   function alterarNota(index: number, valor: number) {
     setNotas(prev => {
@@ -126,7 +126,7 @@ export default function AvaliarFuncionario({
   }
 
 
-  // RENDER PERGUNTAS
+  //- PERGUNTAS
 
   function renderPerguntas(
     eixo: 'DESEMPENHO' | 'POTENCIAL'
@@ -215,7 +215,7 @@ export default function AvaliarFuncionario({
         <div className="dashboard">
           {/* HEADER */}
           <div className="page-header">
-            <h2>📝 Avaliar: {funcionario.nome}</h2>
+            <h2> Avaliando: {funcionario.nome}</h2>
 
           </div>
             <button

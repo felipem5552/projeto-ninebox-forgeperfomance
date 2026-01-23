@@ -111,7 +111,7 @@ export default function DashboardFuncionario({
       <div className="page-content">
         <div className="dashboard dashboard-center">
           <h1 className="dashboard-title">
-            👤 Olá, {funcionario.nome}
+             Olá, {funcionario.nome}
           </h1>
 
           <p className="dashboard-subtitle">
@@ -188,7 +188,7 @@ export default function DashboardFuncionario({
                       setTela('AUTOAVALIACAO')
                     }
                   >
-                    ⭐ Fazer Autoavaliação
+                     Fazer Autoavaliação
                     <small>
                       Avalie seu próprio desempenho
                     </small>
@@ -199,7 +199,7 @@ export default function DashboardFuncionario({
                   className="dashboard-item"
                   onClick={() => setTela('HISTORICO')}
                 >
-                  🕓 Histórico
+                   Histórico
                   <small>
                     Avaliações anteriores
                   </small>

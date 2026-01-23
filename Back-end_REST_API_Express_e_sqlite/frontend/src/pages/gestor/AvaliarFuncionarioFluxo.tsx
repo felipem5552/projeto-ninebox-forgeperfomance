@@ -42,11 +42,11 @@ export default function AvaliarFuncionarioFluxo({
   const [iniciar, setIniciar] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
 
-  // - CARREGA FUNCIONÁRIOS E MODELOS
+  //- CARREGA FUNCIONÁRIOS E MODELOS
   useEffect(() => {
     listarFuncionarios().then(setFuncionarios)
 
-    // ✅ AGORA BUSCA SÓ MODELOS ATIVOS
+    
     listarModelosAvaliacaoAtivos().then(setModelos)
   }, [])
 
