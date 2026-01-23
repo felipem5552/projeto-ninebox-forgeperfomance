@@ -78,7 +78,7 @@ export default function HistoricoFuncionario({
         <div className="dashboard">
           {/* HEADER */}
           <div className="page-header">
-            <h2>🕓 Histórico de {funcionario.nome}</h2>
+            <h2>Histórico de {funcionario.nome}</h2>
           </div>
 
           <button
@@ -130,7 +130,7 @@ export default function HistoricoFuncionario({
             <>
               <div className="dashboard-divider" />
 
-              <h3>📊 Nine Box do Ciclo</h3>
+              <h3>Nine Box do Ciclo</h3>
 
               <NineBox
                 gestor={

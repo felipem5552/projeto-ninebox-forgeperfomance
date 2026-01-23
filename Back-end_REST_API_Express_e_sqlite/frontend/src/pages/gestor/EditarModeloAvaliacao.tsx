@@ -209,7 +209,7 @@ export default function EditarModeloAvaliacao({
 
           {/* HEADER */}
           <div className="page-header">
-            <h2>✏️ Editar Modelo de Avaliação</h2>
+            <h2>Editar Modelo de Avaliação</h2>
           </div>
 
           <p className="dashboard-subtitle">
@@ -225,7 +225,7 @@ export default function EditarModeloAvaliacao({
           <div className="dashboard-divider" />
 
           {/* TÍTULO DO MODELO */}
-          <h3>📌 Título do Modelo</h3>
+          <h3>Título do Modelo</h3>
 
           <input
             value={titulo}
@@ -252,7 +252,7 @@ export default function EditarModeloAvaliacao({
           <div className="dashboard-divider" />
 
           {/* PERGUNTAS */}
-          <h3>📝 Perguntas</h3>
+          <h3>Perguntas</h3>
 
           <p className="dashboard-subtitle">
             <strong>Desempenho:</strong> {qtdDes}/5 &nbsp;|&nbsp;

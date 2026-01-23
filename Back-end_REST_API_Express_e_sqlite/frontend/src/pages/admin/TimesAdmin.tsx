@@ -104,7 +104,7 @@ export default function TimesAdmin() {
   return (
     <div className="form-sm">
 
-      <h2>🧑‍🤝‍🧑 Times</h2>
+      <h2>Times</h2>
 
       {erro && <p className="error-text">{erro}</p>}
 

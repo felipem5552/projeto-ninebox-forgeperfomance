@@ -48,7 +48,7 @@ export default function RelatoriosGestor({ onVoltar }: Props) {
     <div className="page">
       <div className="page-content">
         <div className="dashboard dashboard-center">
-          <h1 className="dashboard-title">📊 Relatórios</h1>
+          <h1 className="dashboard-title"> Relatórios</h1>
 
           <p className="dashboard-subtitle">
             Escolha o tipo de relatório que deseja visualizar
@@ -61,7 +61,7 @@ export default function RelatoriosGestor({ onVoltar }: Props) {
               className="dashboard-item"
               onClick={() => setTela('TIMES')}
             >
-              🧑‍🤝‍🧑 Relatórios por Time
+               Relatórios por Time
               <small>
                 Nine Box consolidada por time e ciclo
               </small>
@@ -71,7 +71,7 @@ export default function RelatoriosGestor({ onVoltar }: Props) {
               className="dashboard-item"
               onClick={() => setTela('FUNCIONARIOS')}
             >
-              👤 Relatórios por Funcionário
+               Relatórios por Funcionário
               <small>
                 Histórico individual e avaliações
               </small>
@@ -81,7 +81,7 @@ export default function RelatoriosGestor({ onVoltar }: Props) {
               className="dashboard-item"
               onClick={() => setTela('GRAFICOS')}
             >
-              📈 Gráficos de Evolução
+               Gráficos de Evolução
               <small>
                 Evolução da Nine Box ao longo dos ciclos
               </small>

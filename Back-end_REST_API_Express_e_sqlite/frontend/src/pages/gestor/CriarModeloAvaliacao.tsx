@@ -116,7 +116,7 @@ export default function CriarModeloAvaliacao({ onVoltar }: Props) {
 
           {/* HEADER */}
           <div className="page-header">
-            <h2>📋 Criar Modelo de Avaliação</h2>
+            <h2>Criar Modelo de Avaliação</h2>
           </div>
 
           <div className="dashboard-divider" />

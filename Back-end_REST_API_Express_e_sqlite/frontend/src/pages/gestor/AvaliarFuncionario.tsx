@@ -235,12 +235,12 @@ export default function AvaliarFuncionario({
 
           <div className="dashboard-divider" />
 
-          <h3>🎯 Desempenho</h3>
+          <h3>Desempenho</h3>
           {renderPerguntas('DESEMPENHO')}
 
           <div className="dashboard-divider" />
 
-          <h3>🚀 Potencial</h3>
+          <h3>Potencial</h3>
           {renderPerguntas('POTENCIAL')}
 
           {erro && (

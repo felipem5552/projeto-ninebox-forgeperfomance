@@ -194,7 +194,7 @@ export default function FuncionariosGestor({
       <div className="page-content">
         <div className="dashboard">
           <div className="page-header">
-            <h2>👥 Funcionários</h2>
+            <h2>Funcionários</h2>
           </div>
 
           <p className="dashboard-subtitle">
@@ -304,7 +304,7 @@ export default function FuncionariosGestor({
                           setTela('HISTORICO')
                         }}
                       >
-                        📜 Histórico
+                       Histórico
                       </button>
 
                       <button
@@ -314,7 +314,7 @@ export default function FuncionariosGestor({
                           setTela('AVALIAR')
                         }}
                       >
-                        📝 Avaliar
+                       Avaliar
                       </button>
                     </td>
                   </tr>

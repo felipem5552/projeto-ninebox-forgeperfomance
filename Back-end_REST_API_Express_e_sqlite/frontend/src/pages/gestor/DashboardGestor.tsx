@@ -52,7 +52,7 @@ export default function DashboardGestor({
       <div className="page-content">
         <div className="dashboard">
           <h1 className="dashboard-title">
-            🎯 Painel do Gestor
+            Painel do Gestor
           </h1>
 
           <p className="dashboard-subtitle">
@@ -66,7 +66,7 @@ export default function DashboardGestor({
               className="dashboard-item"
               onClick={() => setTela('FUNCIONARIOS')}
             >
-              👥 Funcionários
+              Funcionários
               <small>Equipe e avaliações</small>
             </button>
 
@@ -74,7 +74,7 @@ export default function DashboardGestor({
               className="dashboard-item"
               onClick={() => setTela('MODELOS')}
             >
-              📋 Modelos de Avaliação
+              Modelos de Avaliação
               <small>Modelos disponíveis</small>
             </button>
 
@@ -82,7 +82,7 @@ export default function DashboardGestor({
               className="dashboard-item"
               onClick={() => setTela('RELATORIOS')}
             >
-              📊 Relatórios
+              Relatórios
               <small>Times, funcionários e evolução</small>
             </button>
 
@@ -92,7 +92,7 @@ export default function DashboardGestor({
               className="dashboard-logout"
               onClick={onLogout}
             >
-              🚪 Sair
+              Sair
             </button>
           </div>
         </div>

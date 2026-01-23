@@ -142,7 +142,7 @@ export default function RelatorioFuncionarios({ onVoltar }: Props) {
       <div className="page-content">
         <div className="dashboard">
           <div className="page-header">
-            <h2>📄 Relatório por Funcionário</h2>
+            <h2>Relatório por Funcionário</h2>
             <button className="btn-secondary" onClick={onVoltar}>
               ⬅️ Voltar
             </button>
@@ -208,7 +208,7 @@ export default function RelatorioFuncionarios({ onVoltar }: Props) {
           {/* NINE BOX DO CICLO */}
           {resumo && (
             <>
-              <h3>📌 Nine Box do Ciclo</h3>
+              <h3>Nine Box do Ciclo</h3>
               <NineBox
                 gestor={resumo.gestor ?? undefined}
                 auto={resumo.auto ?? undefined}
@@ -219,7 +219,7 @@ export default function RelatorioFuncionarios({ onVoltar }: Props) {
           {/* PERGUNTAS */}
           {perguntas.length > 0 && (
             <>
-              <h3>📝 Perguntas e Respostas</h3>
+              <h3>Perguntas e Respostas</h3>
 
               {(['GESTOR', 'AUTO'] as const).map(tipo => (
                 <div key={tipo}>
@@ -246,7 +246,7 @@ export default function RelatorioFuncionarios({ onVoltar }: Props) {
           {/* EVOLUÇÃO */}
           {Object.entries(evolucaoAgrupada).length > 0 && (
             <>
-              <h3>📈 Evolução</h3>
+              <h3>Evolução</h3>
 
               {Object.entries(evolucaoAgrupada).map(
                 ([_, dados]) => {

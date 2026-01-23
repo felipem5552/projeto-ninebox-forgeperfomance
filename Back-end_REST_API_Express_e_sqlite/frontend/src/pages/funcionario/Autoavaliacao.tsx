@@ -218,7 +218,7 @@ export default function Autoavaliacao({
       <div className="page-content">
         <div className="dashboard">
           <div className="page-header">
-            <h2>⭐ Autoavaliação</h2>
+            <h2>Autoavaliação</h2>
           </div>
 
           <button

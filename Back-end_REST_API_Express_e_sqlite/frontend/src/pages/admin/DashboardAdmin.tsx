@@ -63,7 +63,7 @@ export default function DashboardAdmin({ onLogout }: Props) {
               onClick={() => setTela('FUNCIONARIOS')}
             >
               <span className="dashboard-item-title">
-                👥 Funcionários
+                Funcionários
               </span>
               <small>
                 Cadastro, edição, ativação e permissões
@@ -75,7 +75,7 @@ export default function DashboardAdmin({ onLogout }: Props) {
               onClick={() => setTela('MODELOS')}
             >
               <span className="dashboard-item-title">
-                📋 Modelos de Avaliação
+                Modelos de Avaliação
               </span>
               <small>
                 Perguntas, pesos e estrutura das avaliações

@@ -32,7 +32,7 @@ export default function Configuracoes({ onVoltar }: Props) {
               className={`tab-button ${aba === 'TIMES' ? 'active' : ''}`}
               onClick={() => setAba('TIMES')}
             >
-              🧑‍🤝‍🧑 Times
+              Times
             </button>
 
             <button

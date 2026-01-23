@@ -126,7 +126,7 @@ export default function DashboardFuncionario({
             <>
               {/* NINE BOX COMPARATIVA */}
               <h2 className="dashboard-section-title">
-                📊 Avaliação de Desempenho (Nine Box)
+                Avaliação de Desempenho (Nine Box)
               </h2>
 
               {(resultadoGestor || resultadoAuto) ? (
@@ -169,7 +169,7 @@ export default function DashboardFuncionario({
 
               {!resultadoAuto && resultadoGestor && (
                 <p className="dashboard-warning">
-                  📝 Você ainda não realizou sua autoavaliação.
+                  ⚠️ Você ainda não realizou sua autoavaliação.
                 </p>
               )}
 
@@ -211,7 +211,7 @@ export default function DashboardFuncionario({
                   className="dashboard-logout"
                   onClick={onLogout}
                 >
-                  🚪 Sair do sistema
+                  Sair do sistema
                 </button>
               </div>
             </>
