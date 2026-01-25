@@ -4,6 +4,8 @@ import Instancia_de_Avaliacao from '../models/instancia_de_avaliacao'
 import AvaliacaoRepository from '../repositories/ava_repository'
 import { calcularResultadoAvaliacao } from '../services/avaliacao_service'
 import CicloRepository from '../repositories/ciclo_repository'
+import { enviarConviteAvaliacao } from '../services/email_service'
+import funcionariosRepository from '../repositories/funcionarios_repository'
 
 const ava_Router = express.Router()
 
@@ -194,7 +196,6 @@ ava_Router.delete('/perguntas/:id', (req: Request, res: Response) => {
 
 // - AVALIAÇÃO DO GESTOR
 
-
 ava_Router.post('/avaliar', (req: Request, res: Response) => {
   const instancia = req.body as Instancia_de_Avaliacao
 
@@ -238,16 +239,37 @@ ava_Router.post('/avaliar', (req: Request, res: Response) => {
               })
             }
 
-            res.status(201).json({
-              sucesso: true
-            })
+            //- BUSCAR FUNCIONÁRIO PARA ENVIAR EMAIL
+            funcionariosRepository.buscarPorId(
+              instancia.Avaliado,
+              async funcionario => {
+                if (funcionario && funcionario.email) {
+                  try {
+                    await enviarConviteAvaliacao(
+                      funcionario.email,
+                      funcionario.nome
+                    )
+                  } catch (err) {
+                    console.error(
+                      '⚠️ Erro ao enviar email:',
+                      err
+                    )
+                  }
+                }
+
+                return res.status(201).json({
+                  sucesso: true,
+                  mensagem:
+                    'Avaliação registrada e email processado'
+                })
+              }
+            )
           }
         )
       }
     )
   })
 })
-
 
 // - AUTOAVALIAÇÃO
 

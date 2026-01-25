@@ -1,90 +1,51 @@
 import nodemailer from 'nodemailer'
 
-// Variável para guardar a configuração
 let transporter: nodemailer.Transporter
 
-// Função que configura o Ethereal 
 async function configurarTransporter() {
-  if (transporter) return 
+  if (transporter) return
 
-  // Cria uma conta de teste só pra ver se está funcionando 
-  const testAccount = await nodemailer.createTestAccount()
-
-  // Configuração do transporter no nodemailer
   transporter = nodemailer.createTransport({
-    host: "smtp.ethereal.email",
+    host: 'smtp.gmail.com',
     port: 587,
     secure: false,
     auth: {
-      user: testAccount.user,
-      pass: testAccount.pass
+      user: process.env.EMAIL_USER,
+      pass: process.env.EMAIL_PASS
     }
   })
-  
-  console.log('📧 Serviço de E-mail (Modo Teste) Inicializado!')
+
+  console.log('📧 Serviço de E-mail (Gmail) inicializado!')
 }
 
-export async function enviarConviteAvaliacao(emailDestino: string, nomeFuncionario: string) {
-  
-  // Garantindo que a config está pronta
+export async function enviarConviteAvaliacao(
+  emailDestino: string,
+  nomeFuncionario: string
+) {
   await configurarTransporter()
 
-  // Link que o funcionário supostamente clicaria 
-  const linkAvaliacao = `http://localhost:3000/avaliar` 
+  const linkSistema = process.env.FRONTEND_URL || 'http://localhost:5173'
 
   const htmlContent = `
-    <div style="font-family: Arial, sans-serif; color: #333;">
-      <h2>Olá, ${nomeFuncionario}!</h2>
-      <p>O período de avaliação de desempenho começou.</p>
-      <p>Por favor, clique no botão abaixo para realizar sua avaliação:</p>
-      
-      <a href="${linkAvaliacao}" style="
-        background-color: #4CAF50;
-        color: white;
-        padding: 10px 20px;
-        text-decoration: none;
-        border-radius: 5px;
-        font-weight: bold;
-      ">
-        ACESSAR AVALIAÇÃO
-      </a>
-      
-      <p style="font-size: 12px; color: #888; margin-top: 20px;">
-        Este é um e-mail automático do Sistema Nine-Box.
-      </p>
-    </div>
+    <h2>Olá, ${nomeFuncionario}!</h2>
+    <p>Você recebeu uma nova avaliação no sistema.</p>
+    <a href="${linkSistema}">Acessar sistema</a>
   `
 
   try {
     const info = await transporter.sendMail({
-      from: '"RH Nine-Box" <rh@sistema.com>', 
+      from: `"Sistema de Avaliação" <${process.env.EMAIL_USER}>`,
       to: emailDestino,
-      subject: 'Convite para Avaliação de Desempenho',
-      html: htmlContent,
-      text: `Olá ${nomeFuncionario}, acesse ${linkAvaliacao} para avaliar.`
+      subject: 'Nova avaliação registrada',
+      html: htmlContent
     })
 
-    const urlPreview = nodemailer.getTestMessageUrl(info)
-    
-    console.log(`✅ E-mail simulado para: ${nomeFuncionario}`)
-    console.log(`🔗 VISUALIZAR E-MAIL: ${urlPreview}`)
-    
-    // Retornando com as informações mais detalhadas
-    return {
-      sucesso: true,
-      messageId: info.messageId,
-      url: urlPreview,
-      destinatario: emailDestino
-    }
+    console.log(`✅ Email enviado para ${emailDestino}`)
+
+    return { sucesso: true, messageId: info.messageId }
 
   } catch (erro) {
-    console.error(`❌ Falha ao enviar para ${nomeFuncionario}:`, erro)
-    
-    // Retornando objeto de erro para manter padrão
-    return {
-      sucesso: false,
-      erro: erro,
-      destinatario: emailDestino
-    }
+    console.error('❌ Erro ao enviar email:', erro)
+    return { sucesso: false, erro }
   }
 }
