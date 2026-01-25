@@ -1,12 +1,5 @@
 import database from './database'
-
-type UsuarioAuth = {
-  id: number
-  nome: string
-  email: string
-  senha: string | null
-  privilegios: string
-}
+import UsuarioAuth from '../models/autenticacao'
 
 const AuthRepository = {
 
