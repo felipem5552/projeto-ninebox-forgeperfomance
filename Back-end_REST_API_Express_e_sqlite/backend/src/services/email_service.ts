@@ -28,15 +28,19 @@ export async function enviarConviteAvaliacao(
 
   const htmlContent = `
     <h2>Olá, ${nomeFuncionario}!</h2>
-    <p>Você recebeu uma nova avaliação no sistema.</p>
+    <p>
+      Você acaba de ser avaliado, entre no sistema e faça sua autoavaliação.
+      <br/>
+      É obrigatório realizar esta autoavaliação, caso contrário você ficará com pendência no sistema.
+    </p>
     <a href="${linkSistema}">Acessar sistema</a>
   `
 
   try {
     const info = await transporter.sendMail({
-      from: `"Sistema de Avaliação" <${process.env.EMAIL_USER}>`,
+      from: `"Sistema de Avaliação - BITFORGE" <${process.env.EMAIL_USER}>`,
       to: emailDestino,
-      subject: 'Nova avaliação registrada',
+      subject: 'Autoavaliação Pendente',
       html: htmlContent
     })
 
