@@ -16,7 +16,7 @@ type TelaRelatorio =
 export default function RelatoriosGestor({ onVoltar }: Props) {
   const [tela, setTela] = useState<TelaRelatorio>('MENU')
 
-  // ─────────────── NAVEGAÇÃO INTERNA ───────────────
+  //- PAGINA INTERNA
 
   if (tela === 'TIMES') {
     return (
@@ -42,7 +42,7 @@ export default function RelatoriosGestor({ onVoltar }: Props) {
     )
   }
 
-  // ─────────────── MENU DE RELATÓRIOS ───────────────
+  //- RELATÓRIOS 
 
   return (
     <div className="page">

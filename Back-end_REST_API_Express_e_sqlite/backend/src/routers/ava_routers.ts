@@ -9,11 +9,8 @@ import funcionariosRepository from '../repositories/funcionarios_repository'
 
 const ava_Router = express.Router()
 
-
 // - MODELOS DE AVALIAÇÃO
 
-
-// - LISTAR MODELOS
 ava_Router.get('/avaliacoes', (_req: Request, res: Response) => {
   AvaliacaoRepository.listarModelos(modelos => {
     res.json(modelos)
@@ -99,8 +96,6 @@ ava_Router.put('/avaliacoes/:id', (req: Request, res: Response) => {
   )
 })
 
-
-
 // - VERIFICAR USO DO MODELO
 ava_Router.get('/avaliacoes/:id/uso', (req: Request, res: Response) => {
   const modeloId = Number(req.params.id)
@@ -113,9 +108,7 @@ ava_Router.get('/avaliacoes/:id/uso', (req: Request, res: Response) => {
   )
 })
 
-
 // - PERGUNTAS
-
 
 // - LISTAR PERGUNTAS DO MODELO
 ava_Router.get('/avaliacoes/:id', (req: Request, res: Response) => {
@@ -156,6 +149,7 @@ ava_Router.get('/avaliacoes-ativas', (_req: Request, res: Response) => {
 })
 
 // - ATUALIZAR PERGUNTA
+
 ava_Router.put('/pergunta/:id', (req: Request, res: Response) => {
   const id = Number(req.params.id)
   const pergunta = req.body as Pergunta
@@ -176,6 +170,7 @@ ava_Router.put('/pergunta/:id', (req: Request, res: Response) => {
 })
 
 // - REMOVER PERGUNTA
+
 ava_Router.delete('/perguntas/:id', (req: Request, res: Response) => {
   const id = Number(req.params.id)
 
@@ -207,7 +202,6 @@ ava_Router.post('/avaliar', (req: Request, res: Response) => {
       })
     }
 
-    // - VERIFICA DUPLICIDADE
     AvaliacaoRepository.verificarAvaliacaoNoCiclo(
       instancia.Avaliado,
       ciclo.id,
@@ -272,7 +266,6 @@ ava_Router.post('/avaliar', (req: Request, res: Response) => {
 })
 
 // - AUTOAVALIAÇÃO
-
 
 ava_Router.post('/autoavaliacao', (req: Request, res: Response) => {
   const { avaliado, modelo, notas } = req.body as {

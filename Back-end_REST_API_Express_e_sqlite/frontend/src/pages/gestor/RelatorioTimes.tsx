@@ -55,7 +55,7 @@ export default function RelatorioTimes({ onVoltar }: Props) {
   const [erro, setErro] = useState<string | null>(null)
 
   
-  // LOAD INICIAL
+  //- CARREGAMENTO INICIAL
   
   useEffect(() => {
     listarFuncionarios().then(setFuncionarios)
@@ -63,7 +63,7 @@ export default function RelatorioTimes({ onVoltar }: Props) {
   }, [])
 
   
-  // RELATÓRIO POR CICLO 
+  //- RELATÓRIO POR CICLO 
   
   useEffect(() => {
     if (!cicloId) return
@@ -86,7 +86,7 @@ export default function RelatorioTimes({ onVoltar }: Props) {
   }, [cicloId, timeId])
 
   
-  // EVOLUÇÃO DO TIME (TODOS OS CICLOS)
+  //- EVOLUÇÃO DO TIME
   
   useEffect(() => {
     if (!timeId || cicloId) return
@@ -103,7 +103,7 @@ export default function RelatorioTimes({ onVoltar }: Props) {
   }, [timeId, cicloId])
 
   
-  // AGRUPAMENTO GESTOR + AUTO (POR TIME)
+  //- GESTOR + AUTOAVALIAÇÃO 
   
   const agrupadoPorTime = useMemo(() => {
     const mapa: Record<
@@ -138,9 +138,6 @@ export default function RelatorioTimes({ onVoltar }: Props) {
 
     return mapa
   }, [dadosTime])
-
-  
-  // AGRUPAMENTO EVOLUÇÃO (POR CICLO)
   
   const evolucaoAgrupada = useMemo(() => {
     return evolucao.reduce<Record<number, EvolucaoRow[]>>(
@@ -177,7 +174,7 @@ export default function RelatorioTimes({ onVoltar }: Props) {
   }
 
   
-  // RENDER
+  //- RENDER
   
   return (
     <div className="page">

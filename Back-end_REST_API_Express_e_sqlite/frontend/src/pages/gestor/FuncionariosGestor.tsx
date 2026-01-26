@@ -44,16 +44,16 @@ export default function FuncionariosGestor({
   const [filtroStatus, setFiltroStatus] =
     useState<'TODOS' | 'PENDENTE' | 'AVALIADO'>('TODOS')
 
-  // ─────────────────────────────────────────────
+ 
   // CICLO ATIVO
-  // ─────────────────────────────────────────────
+ 
   useEffect(() => {
     buscarCicloAtivo().then(setCicloAtivo)
   }, [])
 
-  // ─────────────────────────────────────────────
+ 
   // VERIFICAR SE PODE AVALIAR NO CICLO
-  // ─────────────────────────────────────────────
+ 
   useEffect(() => {
     async function verificarCiclo() {
       if (!cicloAtivo) {
@@ -78,9 +78,9 @@ export default function FuncionariosGestor({
     verificarCiclo()
   }, [cicloAtivo])
 
-  // ─────────────────────────────────────────────
+ 
   // FUNCIONÁRIOS (SEM ADMIN)
-  // ─────────────────────────────────────────────
+ 
   async function carregarFuncionarios() {
     const data = await listarFuncionarios()
 
@@ -95,9 +95,9 @@ export default function FuncionariosGestor({
     carregarFuncionarios()
   }, [])
 
-  // ─────────────────────────────────────────────
+ 
   // AVALIADOS NO CICLO
-  // ─────────────────────────────────────────────
+ 
   useEffect(() => {
     async function verificarAvaliacoes() {
       if (!cicloAtivo) return
@@ -128,9 +128,9 @@ export default function FuncionariosGestor({
     setFuncionarioSelecionado(null)
   }
 
-  // ─────────────────────────────────────────────
+ 
   // TELAS INTERNAS
-  // ─────────────────────────────────────────────
+ 
 
   if (tela === 'HISTORICO' && funcionarioSelecionado) {
     return (
@@ -154,9 +154,9 @@ export default function FuncionariosGestor({
     )
   }
 
-  // ─────────────────────────────────────────────
+ 
   // FILTROS
-  // ─────────────────────────────────────────────
+ 
   const funcionariosFiltrados = funcionarios.filter(func => {
     const jaAvaliado = avaliados.includes(func.id)
 
@@ -186,9 +186,9 @@ export default function FuncionariosGestor({
     new Set(funcionarios.map(f => f.time_nome).filter(Boolean))
   )
 
-  // ─────────────────────────────────────────────
+ 
   // RENDER
-  // ─────────────────────────────────────────────
+ 
   return (
     <div className="page">
       <div className="page-content">

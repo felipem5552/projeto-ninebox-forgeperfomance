@@ -35,9 +35,9 @@ export default function Autoavaliacao({
   const [enviando, setEnviando] = useState(false)
   const [sucesso, setSucesso] = useState(false)
 
-  // ─────────────────────────────────────────────
+  
   // BUSCA ÚLTIMO MODELO
-  // ─────────────────────────────────────────────
+  
   useEffect(() => {
     async function buscarModelo() {
       try {
@@ -71,9 +71,9 @@ export default function Autoavaliacao({
     buscarModelo()
   }, [funcionario.id])
 
-  // ─────────────────────────────────────────────
+  
   // CARREGA PERGUNTAS
-  // ─────────────────────────────────────────────
+  
   useEffect(() => {
     if (!modeloId) return
 
@@ -86,9 +86,9 @@ export default function Autoavaliacao({
       .finally(() => setLoading(false))
   }, [modeloId])
 
-  // ─────────────────────────────────────────────
+  
   // MARCAR NOTA
-  // ─────────────────────────────────────────────
+  
   function marcarNota(index: number, valor: number) {
     setNotas(prev => {
       const copia = [...prev]
@@ -97,9 +97,9 @@ export default function Autoavaliacao({
     })
   }
 
-  // ─────────────────────────────────────────────
+  
   // ENVIAR AUTOAVALIAÇÃO
-  // ─────────────────────────────────────────────
+  
   async function enviarAutoavaliacao() {
     if (enviando) return
 
@@ -147,9 +147,9 @@ export default function Autoavaliacao({
     }
   }
 
-  // ─────────────────────────────────────────────
+  
   // SUCESSO
-  // ─────────────────────────────────────────────
+  
   if (sucesso) {
     return (
       <div className="page">
@@ -173,9 +173,9 @@ export default function Autoavaliacao({
     )
   }
 
-  // ─────────────────────────────────────────────
+  
   // LOADING
-  // ─────────────────────────────────────────────
+  
   if (loading) {
     return (
       <div className="page">
@@ -188,9 +188,9 @@ export default function Autoavaliacao({
     )
   }
 
-  // ─────────────────────────────────────────────
+  
   // ERRO SEM PERGUNTAS
-  // ─────────────────────────────────────────────
+  
   if (erro && perguntas.length === 0) {
     return (
       <div className="page">
@@ -210,9 +210,9 @@ export default function Autoavaliacao({
     )
   }
 
-  // ─────────────────────────────────────────────
+  
   // RENDER PRINCIPAL
-  // ─────────────────────────────────────────────
+  
   return (
     <div className="page page-avaliacao">
       <div className="page-content">

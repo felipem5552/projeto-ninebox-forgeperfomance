@@ -46,7 +46,6 @@ export default function DashboardFuncionario({
     useState<AvaliacaoResumo | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // força reload após voltar de telas secundárias
   const [reload, setReload] = useState(0)
 
   function voltarHome() {
@@ -54,9 +53,9 @@ export default function DashboardFuncionario({
     setReload(r => r + 1)
   }
 
-  // ─────────────────────────────────────────────
+  
   // CARREGA RESULTADOS (GESTOR / AUTO)
-  // ─────────────────────────────────────────────
+  
   useEffect(() => {
     setLoading(true)
 
@@ -82,9 +81,9 @@ export default function DashboardFuncionario({
 
 
 
-  // ─────────────────────────────────────────────
+  
   // TELAS SECUNDÁRIAS
-  // ─────────────────────────────────────────────
+  
   if (tela === 'AUTOAVALIACAO') {
     return (
       <Autoavaliacao
@@ -103,9 +102,9 @@ export default function DashboardFuncionario({
     )
   }
 
-  // ─────────────────────────────────────────────
+  
   // HOME
-  // ─────────────────────────────────────────────
+  
   return (
     <div className="page">
       <div className="page-content">

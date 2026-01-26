@@ -15,8 +15,6 @@ type FuncionarioRow = {
   data_de_ingresso: string
 }
 
-
-
 const DBSOURCE = "../../../db.sqlite"
 const database = new sqlite3.Database(DBSOURCE, err => {
   if (err) {

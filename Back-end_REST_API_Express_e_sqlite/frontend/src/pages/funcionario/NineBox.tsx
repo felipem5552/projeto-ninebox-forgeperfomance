@@ -1,6 +1,6 @@
 type Avaliacao = {
-  desempenho: number // 1 a 3
-  potencial: number  // 1 a 3
+  desempenho: number
+  potencial: number  
 }
 
 type Props = {
@@ -8,9 +8,9 @@ type Props = {
   auto?: Avaliacao
 }
 
-/**
- * Mapeia desempenho + potencial para o quadrante da Nine Box
- */
+
+ //- DESEMPENHO E POTENCIAL NINEBOX
+
 function calcularQuadrante(
   desempenho: number,
   potencial: number
@@ -30,18 +30,18 @@ function calcularQuadrante(
   return mapa[`${desempenho}-${potencial}`] ?? ''
 }
 
-/**
- * Classe visual por nível de quadrante
- */
+
+ //- CLASSE VISUAL
+ 
 function classeQuadrante(quadrante: string) {
   if (['A', 'B', 'D'].includes(quadrante)) return 'q-alto'
   if (['C', 'E', 'G'].includes(quadrante)) return 'q-medio'
   return 'q-baixo'
 }
 
-/**
- * Significado dos quadrantes (linguagem clara)
- */
+
+ //- SIGNIFICADO DOS QUADRANTES
+
 const SIGNIFICADO: Record<string, string> = {
   A: 'Alto desempenho e alto potencial',
   B: 'Bom desempenho com potencial de crescimento',

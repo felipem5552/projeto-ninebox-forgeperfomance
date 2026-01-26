@@ -17,9 +17,8 @@ import {
   buscarEvolucaoFuncionario
 } from '../../services/api'
 console.log('GRAFICO EVOLUCAO CARREGADO')
-// ─────────────────────────────────────────────
+
 // TIPOS
-// ─────────────────────────────────────────────
 
 type Props = {
   onVoltar: () => void
@@ -43,9 +42,7 @@ type Evolucao = {
   potencial: number
 }
 
-// ─────────────────────────────────────────────
 // MONTAR DADOS DO GRÁFICO
-// ─────────────────────────────────────────────
 
 function montarDadosGrafico(dados: Evolucao[]) {
   const ciclos: Record<string, any> = {}
@@ -69,9 +66,7 @@ function montarDadosGrafico(dados: Evolucao[]) {
   return Object.values(ciclos)
 }
 
-// ─────────────────────────────────────────────
-// COMPONENTE
-// ─────────────────────────────────────────────
+// -COMPONENTES GRAFICO
 
 export default function GraficoEvolucao({ onVoltar }: Props) {
   const [modo, setModo] = useState<'TIME' | 'FUNCIONARIO'>('TIME')
@@ -88,24 +83,24 @@ export default function GraficoEvolucao({ onVoltar }: Props) {
   const [loading, setLoading] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
 
-  // LOAD INICIAL
+  // -LOAD INICIAL
   useEffect(() => {
     listarTimes().then(setTimes)
     listarFuncionarios().then(setFuncionarios)
   }, [])
 
-  // ─────────────────────────────────────────────
-  // BUSCA FUNCIONÁRIO POR NOME
-  // ─────────────────────────────────────────────
+
+  // -BUSCA FUNCIONÁRIO POR NOME
+
   const funcionariosFiltrados = useMemo(() => {
     return funcionarios.filter(f =>
       f.nome.toLowerCase().includes(busca.toLowerCase())
     )
   }, [busca, funcionarios])
 
-  // ─────────────────────────────────────────────
-  // EVOLUÇÃO POR TIME
-  // ─────────────────────────────────────────────
+
+  // -EVOLUÇÃO POR TIME
+
   useEffect(() => {
     if (modo !== 'TIME' || !timeId) return
 
@@ -128,9 +123,9 @@ export default function GraficoEvolucao({ onVoltar }: Props) {
       .finally(() => setLoading(false))
   }, [modo, timeId])
 
-  // ─────────────────────────────────────────────
-  // EVOLUÇÃO POR FUNCIONÁRIO
-  // ─────────────────────────────────────────────
+
+  //- EVOLUÇÃO POR FUNCIONÁRIO
+
   useEffect(() => {
     if (modo !== 'FUNCIONARIO' || !funcionarioId) return
 
@@ -150,9 +145,9 @@ export default function GraficoEvolucao({ onVoltar }: Props) {
     [dados]
   )
 
-  // ─────────────────────────────────────────────
-  // RENDER
-  // ─────────────────────────────────────────────
+
+  //- RENDER
+
 
   return (
     <div className="page">

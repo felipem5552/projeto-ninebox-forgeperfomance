@@ -26,9 +26,9 @@ export default function HistoricoFuncionario({
   const [cicloSelecionado, setCicloSelecionado] =
     useState<number | null>(null)
 
-  // ─────────────────────────────────────────────
+  
   // BUSCAR HISTÓRICO
-  // ─────────────────────────────────────────────
+  
   useEffect(() => {
     fetch(
       `http://localhost:4000/api/funcionarios/${funcionario.id}/historico`
@@ -44,9 +44,9 @@ export default function HistoricoFuncionario({
       })
   }, [funcionario.id])
 
-  // ─────────────────────────────────────────────
+  
   // CICLOS DISPONÍVEIS
-  // ─────────────────────────────────────────────
+  
   const ciclos = useMemo(() => {
     const map = new Map<number, string>()
     historico.forEach(h =>
@@ -57,9 +57,9 @@ export default function HistoricoFuncionario({
     )
   }, [historico])
 
-  // ─────────────────────────────────────────────
+  
   // AVALIAÇÕES DO CICLO SELECIONADO
-  // ─────────────────────────────────────────────
+  
   const avaliacaoGestor = historico.find(
     h =>
       h.ciclo_id === cicloSelecionado &&

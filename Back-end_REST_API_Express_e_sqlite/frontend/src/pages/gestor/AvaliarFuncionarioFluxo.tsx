@@ -43,6 +43,7 @@ export default function AvaliarFuncionarioFluxo({
   const [erro, setErro] = useState<string | null>(null)
 
   //- CARREGA FUNCIONÁRIOS E MODELOS
+
   useEffect(() => {
     listarFuncionarios().then(setFuncionarios)
 
@@ -51,6 +52,7 @@ export default function AvaliarFuncionarioFluxo({
   }, [])
 
   // - INICIAR AVALIAÇÃO
+  
   if (iniciar && funcionarioSelecionado && modeloSelecionado) {
     return (
       <AvaliarFuncionario

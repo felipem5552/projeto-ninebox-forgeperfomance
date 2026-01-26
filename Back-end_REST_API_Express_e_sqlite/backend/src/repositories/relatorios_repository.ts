@@ -1,8 +1,6 @@
 import database from './database'
 
-// ─────────────────────────────────────────────
 // TIPOS
-// ─────────────────────────────────────────────
 
 export type NineBoxPorTimeRow = {
   time_id: number
@@ -22,14 +20,12 @@ export type NineBoxTimeEvolucaoRow = {
   quantidade: number
 }
 
-// ─────────────────────────────────────────────
 // REPOSITORY
-// ─────────────────────────────────────────────
 
 const RelatoriosRepository = {
-  // ─────────────────────────────────────────────
+  
   // NINE BOX POR TIME (UM CICLO)
-  // ─────────────────────────────────────────────
+  
   nineBoxPorTime(
     cicloId: number,
     callback: (dados: NineBoxPorTimeRow[]) => void
@@ -60,9 +56,8 @@ const RelatoriosRepository = {
     )
   },
 
-  // ─────────────────────────────────────────────
   // EVOLUÇÃO NINE BOX DE UM TIME (TODOS OS CICLOS)
-  // ─────────────────────────────────────────────
+  
   buscarNineBoxPorTimeEvolucao(
     timeId: number,
     callback: (dados: NineBoxTimeEvolucaoRow[]) => void
