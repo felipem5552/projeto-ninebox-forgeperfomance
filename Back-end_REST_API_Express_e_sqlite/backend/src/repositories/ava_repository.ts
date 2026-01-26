@@ -1,5 +1,6 @@
 import database from './database'
 import Pergunta from '../models/pergunta'
+import CicloRow from '../models/ciclo'
 import Instancia_de_Avaliacao from '../models/instancia_de_avaliacao'
 import { calcularResultadoAvaliacao } from '../services/avaliacao_service'
 import CicloRepository from './ciclo_repository'
@@ -10,18 +11,6 @@ type CountRow = { total: number }
 type PerguntaRow = { id: number }
 type ResultadoRow = { modelo: number }
 
-type HistoricoRow = {
-  ciclo_id: number
-  ciclo_nome: string
-  desempenho: number
-  potencial: number
-  nine_box: number
-  tipo: 'GESTOR' | 'AUTO'
-}
-type CicloRow = {
-  id: number
-  nome: string
-}
 
 const AvaliacaoRepository = {
 

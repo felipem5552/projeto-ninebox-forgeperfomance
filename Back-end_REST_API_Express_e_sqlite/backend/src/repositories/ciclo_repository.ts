@@ -1,14 +1,5 @@
 import database from './database'
-
-// - TIPOS
-
-export type CicloRow = {
-  id: number
-  nome: string
-  ativo: number
-  data_inicio?: string | null
-  data_fim?: string | null
-}
+import CicloRow from '../models/ciclo'
 
 // - REPOSITÓRIO DE CICLOS
 

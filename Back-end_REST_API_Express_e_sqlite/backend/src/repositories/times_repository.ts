@@ -1,10 +1,5 @@
 import database from './database'
-
-export type TimeRow = {
-  id: number
-  nome: string
-  ativo: number
-}
+import TimeRow from '../models/times'
 
 const TimesRepository = {
   listar(callback: (times: TimeRow[]) => void) {
