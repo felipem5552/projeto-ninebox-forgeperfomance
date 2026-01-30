@@ -1,4 +1,4 @@
-# 💻 Sistemas para avaliações TRON
+# 💻 Sistemas para avaliações Nine-Box
 
 #### `API completa para um sistema de avaliações 180º`
 
@@ -60,11 +60,11 @@ O objetivo dessa **API** é proporcionar um projeto completo para ***autoavalia�
 
 - Como dito anteriormente, vamos usar dois terminais para esse processo. Portanto, abra dois terminais, dirija um dos terminais à pasta backend e dirija o outro para a pasta frontend. Usando esse comando vá até o backend:
 
-      cd Back-end_REST_API_Express_e_sqlite/backend
+      cd ForgePerformance/backend
 
 - Para o frontend use esse comando:
 
-      cd  Back-end_REST_API_Express_e_sqlite/frontend
+      cd  ForgePerformance/frontend
 
 - Agora, é preciso iniciar o servidor em ambos os terminais, digite o seguinte comando em AMBOS:
 
